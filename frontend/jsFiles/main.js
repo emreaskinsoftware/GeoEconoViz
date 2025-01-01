@@ -617,18 +617,17 @@ function getSelectedMetrics() {
 
 // Seçilen ülke, metrikler ve yıllar doğrultusunda veriyi getiren fonksiyon
 function fetchDataFromDatabase(countryName, selectedMetrics) {
-    console.log(`fetchDataFromDatabase çağrıldı. Ülke: ${countryName || "Tüm ülkeler"}, Metrikler: ${selectedMetrics}`);
+    console.log(`fetchDataFromDatabase çağrıldı. Ülke: ${countryName || "Tüm ülkeler"}, Metrikler: ${selectedMetrics || "Tüm metrikler"}`);
 
     // İşaretlenen yılları al ve tam ISO formatına dönüştür
     const yearCheckboxes = document.querySelectorAll('.year-checkbox:checked');
     let selectedYears = Array.from(yearCheckboxes).map(checkbox => {
-        const year = checkbox.value;
-        return `${year}-01-01T00:00:00Z`; // ISO formatına dönüştür
+        return `${checkbox.value}-01-01T00:00:00Z`; // ISO formatına dönüştür
     });
 
     // Eğer yıl seçilmemişse varsayılan yıl 2023'ü kullan
     if (selectedYears.length === 0) {
-        selectedYears = ["2023-01-01T00:00:00Z"];
+        selectedYears = ["2023-01-01T00:00:00Z"]; // Varsayılan yıl ISO formatında
     }
 
     console.log("Seçilen Yıllar (ISO Format):", selectedYears);
@@ -636,19 +635,19 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
     // API URL'sini oluştur
     const url = new URL('https://geoeconoviz-1.onrender.com/countries');
 
-    // Eğer ülke seçilmişse sorguya ekle
+    // Ülke seçilmişse sorguya ekle
     if (countryName) {
         url.searchParams.append('countryName', countryName);
     }
 
     // Seçilen yılları sorguya ekle
     if (selectedYears.length > 0) {
-        url.searchParams.append('years', selectedYears.join(','));
+        url.searchParams.append('years', selectedYears.join(',')); // Yılları virgülle ayırarak ekle
     }
 
     // Seçilen metrikleri sorguya ekle
     if (selectedMetrics && selectedMetrics.length > 0) {
-        const metricsQuery = selectedMetrics.join(',');
+        const metricsQuery = selectedMetrics.join(','); // Metrikleri virgülle ayırarak ekle
         url.searchParams.append('metrics', metricsQuery);
     }
 
@@ -675,6 +674,7 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
             console.error("Veri tabanından veri alınırken hata:", error);
         });
 }
+
 
 // Tablodaki veriyi güncelleyen fonksiyon
 function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
@@ -735,10 +735,6 @@ function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
     metricTableContainer.style.display = "block";
     console.log("Tablo başarıyla güncellendi.");
 }
-
-
-
-
 
 function searchCountry() {
     const searchInput = document.getElementById('search-input').value.trim();

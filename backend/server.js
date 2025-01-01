@@ -48,66 +48,66 @@ const countrySchema = new mongoose.Schema({
 
 const Country = mongoose.model('Country', countrySchema);
 
-// Seçilen metriklere, yıla ve ülke adına göre veri getiren API
 app.get('/countries', async (req, res) => {
   const { year, countryName, metrics } = req.query;
 
-  // Veritabanındaki alan adlarını basitleştirilmiş metrik adlarıyla eşleme
-  const metricMapping = {
-    enflasyonOrani: "Enflasyon Oranı (%)",
-    İntiharOrani: "İntiharOrani",
-    dogumOrani: "Doğum Oranı (1000 Kişi Başına)",
-    bebekOlumOrani: "Bebek Ölüm Oranı (1000 Canlı Doğum Başına)",
-    saglikHarcamalari: "Sağlık Harcamaları (% GSYİH)",
-    yasamSuresi: "Doğumda Beklenen Yaşam Süresi (yıl)",
-    ilkokulKayitOrani: "İlkokul Kaydı Oranı (%)",
-    isizlikOrani: "İşsizlik Oranı (%)",
-    kisiBasiGsyih: "Kişi Başına GSYİH (ABD Doları)"
-  };
+  // Filtreleme koşulları
+  const matchStage = {};
+
+  // Ülke adı belirtilmişse filtre ekle
+  if (countryName) {
+      matchStage.country = { $regex: new RegExp(`^${countryName}$`, 'i') };
+  }
+
+  // Yıl belirtilmişse filtre ekle
+  if (year) {
+      const yearArray = year.split(',').map(y => new Date(`${y}-01-01`));
+      matchStage.date = { $in: yearArray };
+  }
+
+  // Projection aşaması
+  let projectionStage = { country: 1, date: 1 };
+  if (metrics) {
+      const metricMapping = {
+          enflasyonOrani: "Enflasyon Oranı (%)",
+          İntiharOrani: "İntiharOrani",
+          dogumOrani: "Doğum Oranı (1000 Kişi Başına)",
+          bebekOlumOrani: "Bebek Ölüm Oranı (1000 Canlı Doğum Başına)",
+          saglikHarcamalari: "Sağlık Harcamaları (% GSYİH)",
+          yasamSuresi: "Doğumda Beklenen Yaşam Süresi (yıl)",
+          ilkokulKayitOrani: "İlkokul Kaydı Oranı (%)",
+          isizlikOrani: "İşsizlik Oranı (%)",
+          kisiBasiGsyih: "Kişi Başına GSYİH (ABD Doları)"
+      };
+
+      const selectedMetrics = metrics.split(',');
+      selectedMetrics.forEach(metric => {
+          if (metricMapping[metric]) {
+              projectionStage[metricMapping[metric]] = 1;
+          }
+      });
+  }
+
+  // Varsayılan yıl 2023 (tüm ülkeler için)
+  if (!countryName && !year) {
+      matchStage.date = new Date("2023-01-01");
+  }
 
   try {
-    // Filtreleme koşulları
-    const matchStage = {};
+      const countries = await Country.find(matchStage)
+          .select(projectionStage)
+          .sort({ date: -1 });
 
-    // Ülke adı belirtilmişse filtre ekle
-    if (countryName) {
-      matchStage.country = { $regex: new RegExp(`^${countryName}$`, 'i') }; // Büyük/küçük harf duyarsız
-    }
+      if (countries.length === 0) {
+          return res.status(404).json({ message: "Veri bulunamadı." });
+      }
 
-    // Yıl belirtilmişse filtre ekle
-    if (year) {
-      matchStage.date = new Date(`${year}-01-01`);
-    }
-
-    // Projection aşaması (istenen metrikler için)
-    let projectionStage = { country: 1, date: 1 };
-    if (metrics) {
-      const selectedMetrics = metrics.split(',').map(metric => metric.trim());
-      selectedMetrics.forEach(metric => {
-        const dbField = metricMapping[metric];
-        if (dbField) projectionStage[dbField] = 1;
-      });
-    }
-
-    // Verileri getirme
-    const countries = await Country.find(matchStage)
-      .select(projectionStage)
-      .sort({ date: -1 }); // Tarihe göre sıralama (en güncel veriler)
-
-    if (countries.length === 0) {
-      return res.status(404).json({ message: "Veri bulunamadı." });
-    }
-
-    res.json(countries);
+      res.json(countries);
   } catch (error) {
-    console.error('Error fetching data:', error);
-    res.status(500).json({ message: error.message });
+      console.error('Error fetching data:', error);
+      res.status(500).json({ message: error.message });
   }
 });
-
-
-
-
 
 
 // Kişi başına gelir verilerini her ülke için yıl parametresi opsiyonel olan API
