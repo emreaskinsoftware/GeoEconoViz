@@ -698,43 +698,55 @@ function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
         6: { key: "İlkokul Kaydı Oranı (%)", label: "İlk(%)" },
         7: { key: "İşsizlik Oranı (%)", label: "İşs(%)" },
         8: { key: "Kişi Başına GSYİH (ABD Doları)", label: "GSYİH(ABD Doları)" },
-        9: { key: "İntiharOrani", label: "İnt(%)" } // Doğru eşleşme sağlandı
+        9: { key: "İntiharOrani", label: "İnt(%)" }
     };
 
-    // Tablo başlıklarını güncelle
+    // İlk metrik sıralama için kullanılacak
+    const primaryMetric = selectedMetrics[0];
+    if (!primaryMetric) {
+        console.warn("Sıralama için bir metrik seçilmedi.");
+        return;
+    }
+
+    // Tablo başlıklarını güncelle (sadece seçili olan metrikler)
     selectedMetrics.forEach(metricIndex => {
         if (metricMapping[metricIndex]) {
             metricTableHead.innerHTML += `<th>${metricMapping[metricIndex].label}</th>`;
         }
     });
 
-    // Veriler birden fazla yıl için geldiyse
-    if (Array.isArray(countryData) && countryData.length > 0) {
-        countryData.forEach(data => {
-            const row = [
-                `<td>${data.country || "Ülke yok"}</td>`,
-                `<td>${data.date ? new Date(data.date).toLocaleDateString() : "Tarih yok"}</td>` // Ülke ve Tarih sütunları
-            ];
+    // Veriyi sıralama metriğine göre sırala
+    const sortedData = [...countryData].sort((a, b) => {
+        const aValue = a[metricMapping[primaryMetric].key] || 0;
+        const bValue = b[metricMapping[primaryMetric].key] || 0;
+        return bValue - aValue; // Azalan sırada sıralama
+    });
 
-            selectedMetrics.forEach(metricIndex => {
-                const metric = metricMapping[metricIndex];
-                if (metric) {
-                    const value = data[metric.key] !== undefined ? data[metric.key] : "Veri yok";
-                    row.push(`<td>${value}</td>`);
-                }
-            });
+    // Her ülke için bir satır oluştur (sadece seçili metrikleri ekle)
+    sortedData.forEach(data => {
+        const row = [
+            `<td>${data.country || "Ülke yok"}</td>`, // Ülke sütunu
+            `<td>${data.date ? new Date(data.date).toLocaleDateString() : "Tarih yok"}</td>` // Tarih sütunu
+        ];
 
-            metricTableBody.innerHTML += `<tr>${row.join('')}</tr>`;
+        // Seçili metriklerin verilerini ekle
+        selectedMetrics.forEach(metricIndex => {
+            const metric = metricMapping[metricIndex];
+            if (metric) {
+                const value = data[metric.key] !== undefined ? data[metric.key] : "Veri yok";
+                row.push(`<td>${value}</td>`);
+            }
         });
-    } else {
-        // Eğer veri yoksa "Veri bulunamadı" mesajını ekle
-        metricTableBody.innerHTML = `<tr><td colspan="${selectedMetrics.length + 2}">Veri bulunamadı.</td></tr>`;
-    }
+
+        // Satırı tabloya ekle
+        metricTableBody.innerHTML += `<tr>${row.join('')}</tr>`;
+    });
 
     // Tabloyu görünür hale getir
     metricTableContainer.style.display = "block";
     console.log("Tablo başarıyla güncellendi.");
 }
+
 
 function searchCountry() {
     const searchInput = document.getElementById('search-input').value.trim();

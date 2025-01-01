@@ -56,58 +56,60 @@ app.get('/countries', async (req, res) => {
 
   // Ülke adı belirtilmişse filtre ekle
   if (countryName) {
-      matchStage.country = { $regex: new RegExp(`^${countryName}$`, 'i') };
+    matchStage.country = { $regex: new RegExp(`^${countryName}$`, 'i') };
   }
 
   // Yıl belirtilmişse filtre ekle
   if (year) {
-      const yearArray = year.split(',').map(y => new Date(`${y}-01-01`));
-      matchStage.date = { $in: yearArray };
+    const yearArray = year.split(',').map(y => new Date(`${y}-01-01`));
+    matchStage.date = { $in: yearArray };
   }
 
   // Projection aşaması
-  let projectionStage = { country: 1, date: 1 };
+  let projectionStage = { country: 1, date: 1 }; // Varsayılan olarak ülke ve tarih alınır
   if (metrics) {
-      const metricMapping = {
-          enflasyonOrani: "Enflasyon Oranı (%)",
-          İntiharOrani: "İntiharOrani",
-          dogumOrani: "Doğum Oranı (1000 Kişi Başına)",
-          bebekOlumOrani: "Bebek Ölüm Oranı (1000 Canlı Doğum Başına)",
-          saglikHarcamalari: "Sağlık Harcamaları (% GSYİH)",
-          yasamSuresi: "Doğumda Beklenen Yaşam Süresi (yıl)",
-          ilkokulKayitOrani: "İlkokul Kaydı Oranı (%)",
-          isizlikOrani: "İşsizlik Oranı (%)",
-          kisiBasiGsyih: "Kişi Başına GSYİH (ABD Doları)"
-      };
+    const metricMapping = {
+      enflasyonOrani: "Enflasyon Oranı (%)",
+      İntiharOrani: "İntiharOrani",
+      dogumOrani: "Doğum Oranı (1000 Kişi Başına)",
+      bebekOlumOrani: "Bebek Ölüm Oranı (1000 Canlı Doğum Başına)",
+      saglikHarcamalari: "Sağlık Harcamaları (% GSYİH)",
+      yasamSuresi: "Doğumda Beklenen Yaşam Süresi (yıl)",
+      ilkokulKayitOrani: "İlkokul Kaydı Oranı (%)",
+      isizlikOrani: "İşsizlik Oranı (%)",
+      kisiBasiGsyih: "Kişi Başına GSYİH (ABD Doları)"
+    };
 
-      const selectedMetrics = metrics.split(',');
-      selectedMetrics.forEach(metric => {
-          if (metricMapping[metric]) {
-              projectionStage[metricMapping[metric]] = 1;
-          }
-      });
+    const selectedMetrics = metrics.split(','); // Virgülle ayrılmış metrikleri al
+    selectedMetrics.forEach(metric => {
+      if (metricMapping[metric]) {
+        projectionStage[metricMapping[metric]] = 1; // Seçilen metrikleri projection'a ekle
+      }
+    });
   }
 
   // Varsayılan yıl 2023 (tüm ülkeler için)
   if (!countryName && !year) {
-      matchStage.date = new Date("2023-01-01");
+    matchStage.date = new Date("2023-01-01");
   }
 
   try {
-      const countries = await Country.find(matchStage)
-          .select(projectionStage)
-          .sort({ date: -1 });
+    // Verileri veritabanından getirme
+    const countries = await Country.find(matchStage)
+      .select(projectionStage)
+      .sort({ date: -1 }); // Tarihe göre sıralama (en güncel veriler)
 
-      if (countries.length === 0) {
-          return res.status(404).json({ message: "Veri bulunamadı." });
-      }
+    if (countries.length === 0) {
+      return res.status(404).json({ message: "Veri bulunamadı." });
+    }
 
-      res.json(countries);
+    res.json(countries); // Bulunan verileri döndür
   } catch (error) {
-      console.error('Error fetching data:', error);
-      res.status(500).json({ message: error.message });
+    console.error('Error fetching data:', error);
+    res.status(500).json({ message: error.message });
   }
 });
+
 
 
 // Kişi başına gelir verilerini her ülke için yıl parametresi opsiyonel olan API
