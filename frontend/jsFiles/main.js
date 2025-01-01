@@ -9,7 +9,7 @@
 
 // CesiumJS Viewer Başlat
 const viewer = new Cesium.Viewer('cesiumContainer', {
-    terrainProvider: Cesium.createWorldTerrain(),
+    terrainProvider: Cesium.createWorldTerrainAsync(),
     baseLayerPicker: true,
     animation: false,
     timeline: false
