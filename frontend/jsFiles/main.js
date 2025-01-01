@@ -1,15 +1,8 @@
- fetch('/api/env')
-  .then((response) => response.json())
-  .then((env) => {
-    console.log('Çevresel değişkenler:', env);
-    Cesium.Ion.defaultAccessToken = env.CESIUM_ACCESS_TOKEN;
-    API_URL = env.API_URL;
-  })
-  .catch((error) => console.error('Çevresel değişkenler alınırken hata:', error));
-
+// Erişim tokeninizi buraya ekleyin
+Cesium.Ion.defaultAccessToken = 'KALDIRILDI-CESIUM-ION-TOKEN';
 // CesiumJS Viewer Başlat
 const viewer = new Cesium.Viewer('cesiumContainer', {
-    terrainProvider: Cesium.createWorldTerrainAsync(),
+    terrainProvider: Cesium.createWorldTerrain(),
     baseLayerPicker: true,
     animation: false,
     timeline: false

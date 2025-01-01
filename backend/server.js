@@ -202,18 +202,11 @@ app.get('/countries/find-by-name', async (req, res) => {
   }
 });
 
-app.get('/api/env', (req, res) => {
-  res.json({
-    API_URL: process.env.REACT_APP_API_URL,
-    CESIUM_ACCESS_TOKEN: process.env.CESIUM_ACCESS_TOKEN,
-  });
-});
-
 // Frontend dosyalarını servis et
 app.use(express.static(path.join(__dirname, '../frontend'))); // Frontend klasörünün doğru yolu
 
 // Tüm diğer rotalar için index.html dosyasını döndür
-app.get('*', (req, res) => {
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
 });
 
