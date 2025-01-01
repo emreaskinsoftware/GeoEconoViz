@@ -616,33 +616,42 @@ function getSelectedMetrics() {
 }
 
 function fetchDataFromDatabase(countryName, selectedMetrics) {
-    console.log(`fetchDataFromDatabase çağrıldı. Ülke: ${countryName}, Metrikler: ${selectedMetrics}`);
+    console.log(`fetchDataFromDatabase çağrıldı. Ülke: ${countryName || "Tüm ülkeler"}, Metrikler: ${selectedMetrics}`);
 
     // İşaretlenen yılları al ve tam ISO formatına dönüştür
     const yearCheckboxes = document.querySelectorAll('.year-checkbox:checked');
-    const selectedYears = Array.from(yearCheckboxes).map(checkbox => {
+    let selectedYears = Array.from(yearCheckboxes).map(checkbox => {
         const year = checkbox.value;
         return `${year}-01-01T00:00:00Z`; // ISO formatına dönüştür
     });
 
-    console.log("Seçilen Yıllar (ISO Format):", selectedYears); // Konsolda kontrol
+    // Eğer yıl seçilmemişse varsayılan yıl 2023'ü kullan
+    if (selectedYears.length === 0) {
+        selectedYears = ["2023-01-01T00:00:00Z"];
+    }
+
+    console.log("Seçilen Yıllar (ISO Format):", selectedYears);
 
     // API URL'sini oluştur
     const url = new URL('https://geoeconoviz-1.onrender.com/countries');
-    url.searchParams.append('countryName', countryName);
 
-    // Eğer seçilen metrikler varsa, metrikleri sorguya ekle
+    // Eğer ülke seçilmişse sorguya ekle
+    if (countryName) {
+        url.searchParams.append('countryName', countryName);
+    }
+
+    // Seçilen yılları sorguya ekle
+    if (selectedYears.length > 0) {
+        url.searchParams.append('years', selectedYears.join(','));
+    }
+
+    // Seçilen metrikleri sorguya ekle
     if (selectedMetrics && selectedMetrics.length > 0) {
         const metricsQuery = selectedMetrics.join(',');
         url.searchParams.append('metrics', metricsQuery);
     }
 
-    // Eğer seçilen yıllar varsa, yılları sorguya ekle
-    if (selectedYears.length > 0) {
-        url.searchParams.append('years', selectedYears.join(',')); // Yılları virgülle birleştir
-    }
-
-    console.log("API URL'si:", url.toString()); // Konsolda API URL'sini kontrol et
+    console.log("Oluşturulan API URL'si:", url.toString());
 
     // API isteği
     fetch(url)
@@ -657,13 +666,14 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
                 console.log("Veri başarıyla çekildi:", data);
                 updateTableWithSelectedMetrics(data, selectedMetrics); // Verileri tabloya ekle
             } else {
-                console.error("Veri bulunamadı.");
+                console.warn("Hiçbir veri bulunamadı.");
             }
         })
         .catch(error => {
             console.error("Veri tabanından veri alınırken hata:", error);
         });
 }
+
 
 function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
     const metricTableBody = document.getElementById('metricTableBody');
