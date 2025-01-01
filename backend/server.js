@@ -68,21 +68,18 @@ app.get('/countries', async (req, res) => {
   try {
     // Filtreleme koşulları
     const matchStage = {};
-    if (countryName) matchStage.country = countryName;
 
-    // Yıl belirtilmemişse en güncel yılın verisini bul
-    if (year) {
-      matchStage.date = new Date(`${year}-01-01`);
-    } else {
-      const latestRecord = await Country.findOne(matchStage).sort({ date: -1 });
-      if (latestRecord) {
-        matchStage.date = latestRecord.date;
-      } else {
-        return res.status(404).json({ message: "Veri bulunamadı." });
-      }
+    // Ülke adı belirtilmişse filtre ekle
+    if (countryName) {
+      matchStage.country = { $regex: new RegExp(`^${countryName}$`, 'i') }; // Büyük/küçük harf duyarsız
     }
 
-    // İstenen metriklere göre projection ayarlama
+    // Yıl belirtilmişse filtre ekle
+    if (year) {
+      matchStage.date = new Date(`${year}-01-01`);
+    }
+
+    // Projection aşaması (istenen metrikler için)
     let projectionStage = { country: 1, date: 1 };
     if (metrics) {
       const selectedMetrics = metrics.split(',').map(metric => metric.trim());
@@ -92,15 +89,10 @@ app.get('/countries', async (req, res) => {
       });
     }
 
-    // Sıralama metriği olarak ilk metriği veya varsayılanı kullanın
-    const sortMetric = metrics ? metricMapping[metrics.split(',')[0].trim()] : metricMapping['kisiBasiGsyih'];
-
-    // Aggregation pipeline ile veriyi getirme
-    let countries = await Country.aggregate([
-      { $match: matchStage },
-      { $project: projectionStage },
-      { $sort: { [sortMetric]: -1 } }
-    ]);
+    // Verileri getirme
+    const countries = await Country.find(matchStage)
+      .select(projectionStage)
+      .sort({ date: -1 }); // Tarihe göre sıralama (en güncel veriler)
 
     if (countries.length === 0) {
       return res.status(404).json({ message: "Veri bulunamadı." });
@@ -112,6 +104,7 @@ app.get('/countries', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 
 

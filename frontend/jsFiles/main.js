@@ -1,3 +1,7 @@
+let selectedCountry = null; // Seçilen ülke adı
+let selectedMetrics = []; // Seçilen metrikler
+let selectedYears = []; // Seçilen yıllar
+
 // Erişim tokeninizi buraya ekleyin
 Cesium.Ion.defaultAccessToken = 'KALDIRILDI-CESIUM-ION-TOKEN';
 // CesiumJS Viewer Başlat
@@ -522,7 +526,7 @@ function askForDetails(countryName) {
 
     modalTitle.innerHTML = `${mappedName} <img src="${flagUrl}" alt="${countryName} Bayrağı" style="width:30px; height:20px; margin-left:10px;" />`;
 
-    // Vikipedi API'den bilgi çekme
+    // Vikipedi API'den bilgi çekme (Sadece ülke seçiliyken çalışır)
     fetch(`https://tr.wikipedia.org/api/rest_v1/page/summary/${mappedName}`)
         .then(response => response.json())
         .then(data => {
@@ -539,16 +543,22 @@ function askForDetails(countryName) {
 
     // "Tamam" butonuna olay dinleyicisi ekle
     const tamamButton = document.querySelector('.modal-footer .tamam-button');
+    console.log("Tamam butonu seçildi:", tamamButton);
     tamamButton.onclick = function () {
         const selectedMetrics = getSelectedMetrics(); // Seçilen metrikleri al
-        
-    
-        
-    
-        fetchDataFromDatabase(countryName, selectedMetrics); // Veriyi çek ve filtrele
+        console.log("Seçilen metrikler:", selectedMetrics);
+        selectedCountry = countryName; // Seçilen ülkeyi global değişkene kaydet
+
+        console.log("Veri getirme çağrılıyor, Ülke:", countryName, "Metrikler:", selectedMetrics);
+        // Ülke ve seçilen metriklere göre verileri getir
+        fetchDataFromDatabase(countryName, selectedMetrics); // Veriyi çek ve tabloyu filtrele
+        console.log("Modal kapanıyor...");
         closeModal(); // Modalı kapat
+
+        console.log("Metrik değişim dinleyicisi eklendi, Ülke:", countryName);
+        // Seçilen metrikler değiştiğinde tabloyu otomatik güncelle
+        addMetricChangeListener(countryName);
     };
-    
 
     // Bootstrap modal'ı aç
     const modal = new bootstrap.Modal(document.getElementById('staticBackdrop'), {
@@ -557,6 +567,35 @@ function askForDetails(countryName) {
     });
     modal.show();
 }
+
+// Seçilen metrikler değiştiğinde tabloyu güncellemek için dinleyici ekleme
+function addMetricChangeListener(countryName) {
+    console.log(`addMetricChangeListener fonksiyonu çağrıldı. Ülke: ${countryName}`);
+
+    const checkboxes = document.querySelectorAll('.form-check-input');
+
+    // Çift dinleyici eklenmesini önlemek için önce mevcut dinleyicileri temizle
+    checkboxes.forEach(checkbox => {
+        const newCheckbox = checkbox.cloneNode(true); // Checkbox'ı kopyala
+        checkbox.parentNode.replaceChild(newCheckbox, checkbox); // Eski checkbox'ı yenisiyle değiştir
+
+        // Yeni checkbox'a değişim dinleyicisi ekle
+        newCheckbox.addEventListener('change', function () {
+            const updatedMetrics = getSelectedMetrics(); // Güncel metrikleri al
+            console.log("Seçilen metrikler:", updatedMetrics);
+
+            // Fetch fonksiyonu çağrıldığında log mesajı
+            console.log(`Veriler çekiliyor. Ülke: ${countryName}, Metrikler: ${updatedMetrics}`);
+
+            // Yeni verileri çekmek için API çağrısı
+            fetchDataFromDatabase(countryName, updatedMetrics); // Yeni verileri tabloya yükle
+        });
+    });
+
+    console.log("Checkbox dinleyicileri başarıyla eklendi.");
+}
+
+
 
 // Modal kapanma fonksiyonu
 function closeModal() {
@@ -577,6 +616,8 @@ function getSelectedMetrics() {
 }
 
 function fetchDataFromDatabase(countryName, selectedMetrics) {
+    console.log(`fetchDataFromDatabase çağrıldı. Ülke: ${countryName}, Metrikler: ${selectedMetrics}`);
+
     // İşaretlenen yılları al ve tam ISO formatına dönüştür
     const yearCheckboxes = document.querySelectorAll('.year-checkbox:checked');
     const selectedYears = Array.from(yearCheckboxes).map(checkbox => {
@@ -586,13 +627,22 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
 
     console.log("Seçilen Yıllar (ISO Format):", selectedYears); // Konsolda kontrol
 
-    const url = new URL('https://geoeconoviz-1.onrender.com/countries/find-by-name');
-    url.searchParams.append('name', countryName);
+    // API URL'sini oluştur
+    const url = new URL('https://geoeconoviz-1.onrender.com/countries');
+    url.searchParams.append('countryName', countryName);
 
-    // Eğer yıllar seçildiyse sorguya ekle
-    if (selectedYears.length > 0) {
-        url.searchParams.append('years', selectedYears.join(',')); // Virgülle birleştir
+    // Eğer seçilen metrikler varsa, metrikleri sorguya ekle
+    if (selectedMetrics && selectedMetrics.length > 0) {
+        const metricsQuery = selectedMetrics.join(',');
+        url.searchParams.append('metrics', metricsQuery);
     }
+
+    // Eğer seçilen yıllar varsa, yılları sorguya ekle
+    if (selectedYears.length > 0) {
+        url.searchParams.append('years', selectedYears.join(',')); // Yılları virgülle birleştir
+    }
+
+    console.log("API URL'si:", url.toString()); // Konsolda API URL'sini kontrol et
 
     // API isteği
     fetch(url)
@@ -603,7 +653,7 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
             return response.json();
         })
         .then(data => {
-            if (data) {
+            if (data && data.length > 0) {
                 console.log("Veri başarıyla çekildi:", data);
                 updateTableWithSelectedMetrics(data, selectedMetrics); // Verileri tabloya ekle
             } else {
@@ -615,10 +665,10 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
         });
 }
 
-
 function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
     const metricTableBody = document.getElementById('metricTableBody');
     const metricTableHead = document.getElementById('metricTableHead');
+    const metricTableContainer = document.getElementById('metricTableContainer');
 
     // Önceki tabloyu temizle
     metricTableBody.innerHTML = "";
@@ -644,9 +694,12 @@ function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
     });
 
     // Veriler birden fazla yıl için geldiyse
-    if (Array.isArray(countryData)) {
+    if (Array.isArray(countryData) && countryData.length > 0) {
         countryData.forEach(data => {
-            const row = [`<td>${data.country}</td>`, `<td>${data.date ? new Date(data.date).toLocaleDateString() : "Tarih yok"}</td>`]; // Ülke ve Tarih sütunları
+            const row = [
+                `<td>${data.country || "Ülke yok"}</td>`,
+                `<td>${data.date ? new Date(data.date).toLocaleDateString() : "Tarih yok"}</td>` // Ülke ve Tarih sütunları
+            ];
 
             selectedMetrics.forEach(metricIndex => {
                 const metric = metricMapping[metricIndex];
@@ -659,27 +712,14 @@ function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
             metricTableBody.innerHTML += `<tr>${row.join('')}</tr>`;
         });
     } else {
-        // Tek bir veri seti varsa
-        const row = [
-            `<td>${countryData.country}</td>`,
-            `<td>${countryData.date ? new Date(countryData.date).toLocaleDateString() : "Tarih yok"}</td>` // Tarih ekleniyor
-        ];
-
-        selectedMetrics.forEach(metricIndex => {
-            const metric = metricMapping[metricIndex];
-            if (metric) {
-                const value = countryData[metric.key] !== undefined ? countryData[metric.key] : "Veri yok";
-                row.push(`<td>${value}</td>`);
-            }
-        });
-
-        metricTableBody.innerHTML += `<tr>${row.join('')}</tr>`;
+        // Eğer veri yoksa "Veri bulunamadı" mesajını ekle
+        metricTableBody.innerHTML = `<tr><td colspan="${selectedMetrics.length + 2}">Veri bulunamadı.</td></tr>`;
     }
 
     // Tabloyu görünür hale getir
-    const metricTableContainer = document.getElementById('metricTableContainer');
     metricTableContainer.style.display = "block";
 }
+
 
 
 function searchCountry() {
