@@ -56,7 +56,7 @@ app.get('/countries', async (req, res) => {
 
   // Ülke adı belirtilmişse filtre ekle
   if (countryName) {
-    matchStage.country = { $regex: new RegExp(`^${countryName}$`, 'i') };
+    matchStage.country = { $regex: new RegExp(`^${countryName}$`, 'i') }; // Büyük/küçük harf duyarsız eşleşme
   }
 
   // Yıl belirtilmişse filtre ekle
@@ -65,8 +65,13 @@ app.get('/countries', async (req, res) => {
     matchStage.date = { $in: yearArray };
   }
 
+  // Varsayılan yıl 2023 (tüm ülkeler için)
+  if (!countryName && !year) {
+    matchStage.date = new Date("2023-01-01");
+  }
+
   // Projection aşaması
-  let projectionStage = { country: 1, date: 1 }; // Varsayılan olarak ülke ve tarih alınır
+  let projectionStage = { country: 1, date: 1 }; // Varsayılan olarak sadece ülke ve tarih alınır
   if (metrics) {
     const metricMapping = {
       enflasyonOrani: "Enflasyon Oranı (%)",
@@ -88,27 +93,25 @@ app.get('/countries', async (req, res) => {
     });
   }
 
-  // Varsayılan yıl 2023 (tüm ülkeler için)
-  if (!countryName && !year) {
-    matchStage.date = new Date("2023-01-01");
-  }
-
   try {
-    // Verileri veritabanından getirme
+    // Veritabanından verileri getirme
     const countries = await Country.find(matchStage)
       .select(projectionStage)
       .sort({ date: -1 }); // Tarihe göre sıralama (en güncel veriler)
 
+    // Eğer sonuç boşsa 404 döndür
     if (countries.length === 0) {
       return res.status(404).json({ message: "Veri bulunamadı." });
     }
 
-    res.json(countries); // Bulunan verileri döndür
+    // Sonuçları döndür
+    res.json(countries);
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('Veri getirilirken hata oluştu:', error);
     res.status(500).json({ message: error.message });
   }
 });
+
 
 
 

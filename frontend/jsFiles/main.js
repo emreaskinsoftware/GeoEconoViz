@@ -748,6 +748,7 @@ function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
 }
 
 
+
 function searchCountry() {
     const searchInput = document.getElementById('search-input').value.trim();
 
