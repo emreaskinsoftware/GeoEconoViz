@@ -678,6 +678,8 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
 
 // Tablodaki veriyi güncelleyen fonksiyon
 function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
+    console.log("updateTableWithSelectedMetrics çağrıldı.", { countryData, selectedMetrics });
+
     const metricTableBody = document.getElementById('metricTableBody');
     const metricTableHead = document.getElementById('metricTableHead');
     const metricTableContainer = document.getElementById('metricTableContainer');
@@ -686,6 +688,7 @@ function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
     metricTableBody.innerHTML = "";
     metricTableHead.innerHTML = "<th>ÜLKE</th><th>TARİH</th>"; // Başlıkları temizle ve ÜLKE ile TARİH ekle
 
+    // Metrik eşlemesi
     const metricMapping = {
         1: { key: "Enflasyon Oranı (%)", label: "Enf(%)" },
         2: { key: "Doğum Oranı (1000 Kişi Başına)", label: "Doğ(‰)" },
@@ -695,7 +698,7 @@ function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
         6: { key: "İlkokul Kaydı Oranı (%)", label: "İlk(%)" },
         7: { key: "İşsizlik Oranı (%)", label: "İşs(%)" },
         8: { key: "Kişi Başına GSYİH (ABD Doları)", label: "GSYİH(ABD Doları)" },
-        9: { key: "İntiharOrani", label: "İnt(%)" }
+        9: { key: "İntiharOrani", label: "İnt(%)" } // Doğru eşleşme sağlandı
     };
 
     // Tablo başlıklarını güncelle
@@ -730,7 +733,9 @@ function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
 
     // Tabloyu görünür hale getir
     metricTableContainer.style.display = "block";
+    console.log("Tablo başarıyla güncellendi.");
 }
+
 
 
 
