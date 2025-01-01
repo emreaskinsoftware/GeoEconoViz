@@ -615,6 +615,7 @@ function getSelectedMetrics() {
     return selectedMetrics;
 }
 
+// Seçilen ülke, metrikler ve yıllar doğrultusunda veriyi getiren fonksiyon
 function fetchDataFromDatabase(countryName, selectedMetrics) {
     console.log(`fetchDataFromDatabase çağrıldı. Ülke: ${countryName || "Tüm ülkeler"}, Metrikler: ${selectedMetrics}`);
 
@@ -667,6 +668,7 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
                 updateTableWithSelectedMetrics(data, selectedMetrics); // Verileri tabloya ekle
             } else {
                 console.warn("Hiçbir veri bulunamadı.");
+                updateTableWithSelectedMetrics([], selectedMetrics); // Boş tabloyu göster
             }
         })
         .catch(error => {
@@ -674,7 +676,7 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
         });
 }
 
-
+// Tablodaki veriyi güncelleyen fonksiyon
 function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
     const metricTableBody = document.getElementById('metricTableBody');
     const metricTableHead = document.getElementById('metricTableHead');
@@ -729,6 +731,7 @@ function updateTableWithSelectedMetrics(countryData, selectedMetrics) {
     // Tabloyu görünür hale getir
     metricTableContainer.style.display = "block";
 }
+
 
 
 
