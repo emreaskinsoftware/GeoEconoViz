@@ -58,61 +58,77 @@ function updateMetricTable(selectedMetrics, year, countryName) {
         return;
     }
 
-    // Seçilen metriklere göre tabloyu göster ve başlıkları güncelle
+    // Tabloyu göster ve başlıkları güncelle
     metricTableContainer.style.display = 'inline-block';
-    metricTableHead.innerHTML = '<th>Ülke</th>';
+    metricTableHead.innerHTML = '<th>Ülke</th><th>Tarih</th>';
 
-    // Veritabanındaki alan adlarını basitleştirilmiş metrik adlarıyla eşleme
-const metricMapping = {
-    enflasyonOrani: "Enflasyon Oranı (%)",
-    dogumOrani: "Doğum Oranı (1000 Kişi Başına)",
-    bebekOlumOrani: "Bebek Ölüm Oranı (1000 Canlı Doğum Başına)",
-    saglikHarcamalari: "Sağlık Harcamaları (% GSYİH)",
-    yasamSuresi: "Doğumda Beklenen Yaşam Süresi (yıl)",
-    ilkokulKayitOrani: "İlkokul Kaydı Oranı (%)",
-    isizlikOrani: "İşsizlik Oranı (%)",
-    kisiBasiGsyih: "Kişi Başına GSYİH (ABD Doları)",
-    İntiharOrani: "İntiharOrani"
-};
-    // Metriklerin tam adları (checkbox'lara göre)
+    // Metrik eşlemeleri
+    const metricMapping = {
+        enflasyonOrani: "Enflasyon Oranı (%)",
+        dogumOrani: "Doğum Oranı (1000 Kişi Başına)",
+        bebekOlumOrani: "Bebek Ölüm Oranı (1000 Canlı Doğum Başına)",
+        saglikHarcamalari: "Sağlık Harcamaları (% GSYİH)",
+        yasamSuresi: "Doğumda Beklenen Yaşam Süresi (yıl)",
+        ilkokulKayitOrani: "İlkokul Kaydı Oranı (%)",
+        isizlikOrani: "İşsizlik Oranı (%)",
+        kisiBasiGsyih: "Kişi Başına GSYİH (ABD Doları)",
+        İntiharOrani: "İntiharOrani"
+    };
+
+    // Metriklerin kısa ve uzun adları
     const metrics = [
         { key: 'enflasyonOrani', short: 'Enf(%)', full: 'Enflasyon Oranı' },
         { key: 'dogumOrani', short: 'Doğ(‰)', full: 'Doğum Oranı' },
         { key: 'bebekOlumOrani', short: 'Beb(‰)', full: 'Bebek Ölüm Oranı' },
-        { key: 'saglikHarcamalari', short: 'Sağ(% GSYİH)' , full: 'Sağlık Harcamaları' },
+        { key: 'saglikHarcamalari', short: 'Sağ(% GSYİH)', full: 'Sağlık Harcamaları' },
         { key: 'yasamSuresi', short: 'Yaş(yıl)', full: 'Yaşam Süresi' },
         { key: 'ilkokulKayitOrani', short: 'İlk(%)', full: 'İlkokul Kayıt Oranı' },
         { key: 'isizlikOrani', short: 'İşs(%)', full: 'İşsizlik Oranı' },
         { key: 'kisiBasiGsyih', short: 'GSYİH(ABD Doları)', full: 'Kişi Başına Gelir' },
-        { key: 'İntiharOrani', short: 'İnt(%)', full: 'İntihar oranı' }
+        { key: 'İntiharOrani', short: 'İnt(%)', full: 'İntihar Oranı' }
     ];
 
-    // Başlıkları ekle
+    // Tablo başlıklarına seçilen metrikleri ekle
     selectedMetrics.forEach(metricIndex => {
         metricTableHead.innerHTML += `<th>${metrics[metricIndex].short}</th>`;
     });
 
-    // İstek URL'sini oluşturun ve seçilen metrikleri query parametrelerine ekleyin
+    // İstek URL'sini oluştur ve seçilen metrikleri query parametrelerine ekle
     const metricsQuery = selectedMetrics.map(i => metrics[i].key).join(',');
     const url = `https://geoeconoviz-1.onrender.com/countries?year=${year || ''}&countryName=${countryName || ''}&metrics=${metricsQuery}`;
 
     // API'den veriyi çek
     fetch(url)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Veri bulunamadı.');
+            }
+            return response.json();
+        })
         .then(countries => {
-            metricTableBody.innerHTML = ''; // Tablo gövdesini temizleyin
+            if (!countries || countries.length === 0) {
+                console.error('Veri bulunamadı.');
+                return;
+            }
 
-            // Her ülke için seçilen metrikleri tabloya ekleyin
-            countries.forEach((country, index) => {
-                let row = `<tr><td>${country.country}</td>`;
-                
+            metricTableBody.innerHTML = ''; // Tablo gövdesini temizle
+
+            // Her ülke için seçilen metrikleri tabloya ekle
+            countries.forEach(country => {
+                const row = [
+                    `<td>${country.country}</td>`,
+                    `<td>${new Date(country.date).toLocaleDateString()}</td>`
+                ];
+
                 selectedMetrics.forEach(metricIndex => {
                     const metricKey = metrics[metricIndex].key;
-                    row += `<td>${country[metricMapping[metricKey]] !== undefined ? country[metricMapping[metricKey]] : "Veri yok"}</td>`;
+                    const value = country[metricMapping[metricKey]] !== undefined
+                        ? country[metricMapping[metricKey]]
+                        : "Veri yok";
+                    row.push(`<td>${value}</td>`);
                 });
-                
-                row += '</tr>';
-                metricTableBody.innerHTML += row; // Satırı tabloya ekleyin
+
+                metricTableBody.innerHTML += `<tr>${row.join('')}</tr>`;
             });
         })
         .catch(error => {

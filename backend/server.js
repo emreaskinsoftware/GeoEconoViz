@@ -48,71 +48,86 @@ const countrySchema = new mongoose.Schema({
 
 const Country = mongoose.model('Country', countrySchema);
 
+// Seçilen metriklere, yıla ve ülke adına göre veri getiren API
 app.get('/countries', async (req, res) => {
   const { year, countryName, metrics } = req.query;
 
-  // Filtreleme koşulları
-  const matchStage = {};
-
-  // Ülke adı belirtilmişse filtre ekle
-  if (countryName) {
-    matchStage.country = { $regex: new RegExp(`^${countryName}$`, 'i') }; // Büyük/küçük harf duyarsız eşleşme
-  }
-
-  // Yıl belirtilmişse filtre ekle
-  if (year) {
-    const yearArray = year.split(',').map(y => new Date(`${y}-01-01`));
-    matchStage.date = { $in: yearArray };
-  }
-
-  // Varsayılan yıl 2023 (tüm ülkeler için)
-  if (!countryName && !year) {
-    matchStage.date = new Date("2023-01-01");
-  }
-
-  // Projection aşaması
-  let projectionStage = { country: 1, date: 1 }; // Varsayılan olarak sadece ülke ve tarih alınır
-  if (metrics) {
-    const metricMapping = {
-      enflasyonOrani: "Enflasyon Oranı (%)",
-      İntiharOrani: "İntiharOrani",
-      dogumOrani: "Doğum Oranı (1000 Kişi Başına)",
-      bebekOlumOrani: "Bebek Ölüm Oranı (1000 Canlı Doğum Başına)",
-      saglikHarcamalari: "Sağlık Harcamaları (% GSYİH)",
-      yasamSuresi: "Doğumda Beklenen Yaşam Süresi (yıl)",
-      ilkokulKayitOrani: "İlkokul Kaydı Oranı (%)",
-      isizlikOrani: "İşsizlik Oranı (%)",
-      kisiBasiGsyih: "Kişi Başına GSYİH (ABD Doları)"
-    };
-
-    const selectedMetrics = metrics.split(','); // Virgülle ayrılmış metrikleri al
-    selectedMetrics.forEach(metric => {
-      if (metricMapping[metric]) {
-        projectionStage[metricMapping[metric]] = 1; // Seçilen metrikleri projection'a ekle
-      }
-    });
-  }
+  // Veritabanındaki alan adlarını basitleştirilmiş metrik adlarıyla eşleme
+  const metricMapping = {
+    enflasyonOrani: "Enflasyon Oranı (%)",
+    İntiharOrani: "İntiharOrani",
+    dogumOrani: "Doğum Oranı (1000 Kişi Başına)",
+    bebekOlumOrani: "Bebek Ölüm Oranı (1000 Canlı Doğum Başına)",
+    saglikHarcamalari: "Sağlık Harcamaları (% GSYİH)",
+    yasamSuresi: "Doğumda Beklenen Yaşam Süresi (yıl)",
+    ilkokulKayitOrani: "İlkokul Kaydı Oranı (%)",
+    isizlikOrani: "İşsizlik Oranı (%)",
+    kisiBasiGsyih: "Kişi Başına GSYİH (ABD Doları)"
+  };
 
   try {
-    // Veritabanından verileri getirme
-    const countries = await Country.find(matchStage)
-      .select(projectionStage)
-      .sort({ date: -1 }); // Tarihe göre sıralama (en güncel veriler)
+    // Filtreleme koşulları
+    const matchStage = {};
+    if (countryName) matchStage.country = countryName;
 
-    // Eğer sonuç boşsa 404 döndür
-    if (countries.length === 0) {
+    // Yıl belirtilmemişse en güncel yılın verisini bul
+    if (year) {
+      matchStage.date = new Date(`${year}-01-01`);
+    } else {
+      const latestRecord = await Country.findOne(matchStage).sort({ date: -1 });
+      if (latestRecord) {
+        matchStage.date = latestRecord.date;
+      } else {
+        return res.status(404).json({ message: "Veri bulunamadı." });
+      }
+    }
+
+    // Seçili metrikleri yönetmek için projection ayarlama
+    let projectionStage = { country: 1, date: 1 };
+    let selectedMetrics = [];
+    if (metrics) {
+      selectedMetrics = metrics.split(',').map(metric => metric.trim());
+      selectedMetrics.forEach(metric => {
+        const dbField = metricMapping[metric];
+        if (dbField) projectionStage[dbField] = 1;
+      });
+    }
+
+    // Veriyi çekme ve yeni metrikler eklenirse mevcut veriyi koruma
+    const existingData = await Country.aggregate([
+      { $match: matchStage },
+      { $project: projectionStage }
+    ]);
+
+    if (existingData.length > 0 && selectedMetrics.length > 0) {
+      const newMetrics = selectedMetrics.filter(metric => !Object.keys(projectionStage).includes(metricMapping[metric]));
+
+      if (newMetrics.length > 0) {
+        newMetrics.forEach(metric => {
+          const dbField = metricMapping[metric];
+          if (dbField) projectionStage[dbField] = 1;
+        });
+
+        const updatedData = await Country.aggregate([
+          { $match: matchStage },
+          { $project: projectionStage }
+        ]);
+
+        res.json(updatedData);
+        return;
+      }
+    }
+
+    if (existingData.length === 0) {
       return res.status(404).json({ message: "Veri bulunamadı." });
     }
 
-    // Sonuçları döndür
-    res.json(countries);
+    res.json(existingData);
   } catch (error) {
-    console.error('Veri getirilirken hata oluştu:', error);
+    console.error('Error fetching data:', error);
     res.status(500).json({ message: error.message });
   }
 });
-
-
 
 
 // Kişi başına gelir verilerini her ülke için yıl parametresi opsiyonel olan API
