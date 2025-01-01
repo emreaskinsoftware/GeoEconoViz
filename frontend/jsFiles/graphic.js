@@ -1,8 +1,9 @@
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // İlk tabloyu kişi başına gelire göre sıralayıp doldurma
 function loadIncomeTable() {
     // API'den veriyi çek
-    fetch('http://localhost:5000/countries/income')
+    fetch(`${API_URL}/countries/income`)
         .then(response => {
             if (!response.ok) {
                 throw new Error("Veri çekme işlemi başarısız oldu.");
@@ -95,7 +96,7 @@ const metricMapping = {
 
     // İstek URL'sini oluşturun ve seçilen metrikleri query parametrelerine ekleyin
     const metricsQuery = selectedMetrics.map(i => metrics[i].key).join(',');
-    const url = `http://localhost:5000/countries?year=${year || ''}&countryName=${countryName || ''}&metrics=${metricsQuery}`;
+    const url = `https://geoeconoviz-1.onrender.com/countries?year=${year || ''}&countryName=${countryName || ''}&metrics=${metricsQuery}`;
 
     // API'den veriyi çek
     fetch(url)

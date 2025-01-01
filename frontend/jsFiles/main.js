@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || 'https://geoeconoviz-1.onrender.com/';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 fetch(`${API_URL}/api/token`) // Backend URL'si
     .then(response => {
@@ -601,7 +601,7 @@ function fetchDataFromDatabase(countryName, selectedMetrics) {
 
     console.log("Seçilen Yıllar (ISO Format):", selectedYears); // Konsolda kontrol
 
-    const url = new URL('http://localhost:5000/countries/find-by-name');
+    const url = new URL('https://geoeconoviz-1.onrender.com/countries/find-by-name');
     url.searchParams.append('name', countryName);
 
     // Eğer yıllar seçildiyse sorguya ekle
