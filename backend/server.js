@@ -4,6 +4,7 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 
 const corsOptions = {
   origin: '*', // Gerekirse belirli bir domain ile sınırlandırabilirsiniz
@@ -210,7 +211,13 @@ app.get('/countries/find-by-name', async (req, res) => {
   }
 });
 
+// Frontend dosyalarını servis et
+app.use(express.static(path.join(__dirname, '../frontend'))); // Frontend klasörünün doğru yolu
 
+// Tüm diğer rotalar için index.html dosyasını döndür
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+});
 
 // Sunucuyu başlatmak için port belirleme
 const PORT = process.env.PORT || 5000;
