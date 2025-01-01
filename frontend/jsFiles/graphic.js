@@ -1,10 +1,7 @@
-import { API_URL } from './config.js';
-
-
 // İlk tabloyu kişi başına gelire göre sıralayıp doldurma
 function loadIncomeTable() {
     // API'den veriyi çek
-    fetch(`${API_URL}/countries/income`)
+    fetch(`https://geoeconoviz-1.onrender.com/countries/income`)
         .then(response => {
             if (!response.ok) {
                 throw new Error("Veri çekme işlemi başarısız oldu.");

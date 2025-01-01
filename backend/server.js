@@ -14,15 +14,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Tokeni frontend'e gönderme
-app.get('/api/token', (req, res) => {
-  const token = process.env.CESIUM_ACCESS_TOKEN;
-  if (!token) {
-    return res.status(500).json({ message: 'Token bulunamadı.' });
-  }
-  res.json({ token });
-});
-
 // .env dosyasından bağlantı URL'sini al
 const mongoUri = process.env.MONGO_URI;
 
@@ -209,6 +200,13 @@ app.get('/countries/find-by-name', async (req, res) => {
       console.error('Error fetching data by name and years:', error);
       res.status(500).json({ message: error.message });
   }
+});
+
+app.get('/api/env', (req, res) => {
+  res.json({
+    API_URL: process.env.REACT_APP_API_URL,
+    CESIUM_ACCESS_TOKEN: process.env.CESIUM_ACCESS_TOKEN,
+  });
 });
 
 // Frontend dosyalarını servis et

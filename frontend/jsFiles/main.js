@@ -1,20 +1,11 @@
-import { API_URL } from './config.js';
-
-
-fetch(`${API_URL}/api/token`) // Backend URL'si
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Token alınırken hata oluştu: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        Cesium.Ion.defaultAccessToken = data.token; // Tokeni Cesium'a ayarla
-        console.log('Token başarıyla alındı:', data.token);
-    })
-    .catch(error => {
-        console.error('Token alınırken hata oluştu:', error);
-    });
+ fetch('/api/env')
+  .then((response) => response.json())
+  .then((env) => {
+    console.log('Çevresel değişkenler:', env);
+    Cesium.Ion.defaultAccessToken = env.CESIUM_ACCESS_TOKEN;
+    API_URL = env.API_URL;
+  })
+  .catch((error) => console.error('Çevresel değişkenler alınırken hata:', error));
 
 // CesiumJS Viewer Başlat
 const viewer = new Cesium.Viewer('cesiumContainer', {
