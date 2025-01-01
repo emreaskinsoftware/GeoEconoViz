@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veri Tabanı Yönetim Sistemi Projesi</title>
+    <link rel="stylesheet" href="./cssFiles/default.css"> <!-- CSS dosyasını dahil et -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.106/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.106/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-m1YVB5UlHDNl1I4/7DP95xiAW2VohTCsmpp6mmdyTNFx4BJ9UgKZ76QUwBpsZJBm" crossorigin="anonymous">
+    <link rel="stylesheet"   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Home (Navigation) Çubuğu -->
+<!-- Home (Navigation) Çubuğu -->
+<nav class="navbar">
+    <div class="navbar-logo">
+        <img src="./WhatsApp Image 2024-12-30 at 22.58.41.jpeg" alt="Proje Logosu" class="project-logo">
+    </div>
+    <ul class="navbar-menu">
+        <li><a href="#cesiumContainer">Harita</a></li>
+    </ul>
+    <div class="navbar-search">
+        <input
+            type="text"
+            id="search-input"
+            placeholder="Ülke ara..."
+            oninput="filterCountries(this.value)"
+        />
+        <button class="search-icon" onclick="searchCountry()">
+            <i class="fas fa-search"></i>
+        </button>
+        <ul id="search-results" class="search-results"></ul>
+    </div>
+</nav>
+
+
+<div class="metric-menu-container">
+    <button class="metric-menu-button" onclick="toggleMetricMenu()">Metrik Seç</button>
+    <div class="metric-menu-content">
+        <div class="checkbox-container">
+            <div class="list-group-item">
+                <input class="form-check-input" type="checkbox" value="" id="checkbox1">
+                <label class="form-check-label" for="checkbox1">Enflasyon oranı</label>
+            </div>
+            
+            <div class="list-group-item">
+                <input class="form-check-input" type="checkbox" value="" id="checkbox3">
+                <label class="form-check-label" for="checkbox2">Doğum oranı</label>
+            </div>
+            <div class="list-group-item">
+                <input class="form-check-input" type="checkbox" value="" id="checkbox4">
+                <label class="form-check-label" for="checkbox3">Bebek ölüm oranı</label>
+            </div>
+            <div class="list-group-item">
+                <input class="form-check-input" type="checkbox" value="" id="checkbox5">
+                <label class="form-check-label" for="checkbox4">Sağlık harcamaları</label>
+            </div>
+            <div class="list-group-item">
+                <input class="form-check-input" type="checkbox" value="" id="checkbox6">
+                <label class="form-check-label" for="checkbox5">Yaşam süresi</label>
+            </div>
+            <div class="list-group-item">
+                <input class="form-check-input" type="checkbox" value="" id="checkbox7">
+                <label class="form-check-label" for="checkbox6">İlkokul kayıt oranı</label>
+            </div>
+            
+            <div class="list-group-item">
+                <input class="form-check-input" type="checkbox" value="" id="checkbox9">
+                <label class="form-check-label" for="checkbox7">İşsizlik Oranı</label>
+            </div>
+            <div class="list-group-item">
+                <input class="form-check-input" type="checkbox" value="" id="checkbox8">
+                <label class="form-check-label" for="checkbox8">Kişi başına düşen gelir</label>
+            </div>
+            <div class="list-group-item">
+                <input class="form-check-input" type="checkbox" value="" id="checkbox2">
+                <label class="form-check-label" for="checkbox9">İntihar oranı</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Cesium Haritası -->
+    <div class="container">
+        <div id="cesiumContainer"></div> <!-- Cesium Dünya haritası için -->
+    </div>
+
+    <!-- Kişi Başına Gelir Tablosu -->
+    <div class="table-container" id="incomeTableContainer">
+        <table id="incomeTable">
+            <thead>
+                <tr>
+                    <th>Sıra</th>
+                    <th>Ülke</th>
+                    <th>KB.Gelir</th>
+                </tr>
+            </thead>
+            <tbody id="incomeTableBody">
+                <!-- Dinamik veriler buraya gelecek -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Seçilen Metrik Tablosu -->
+    <div class="table-container" id="metricTableContainer" style="display:none;">
+        <table id="metricTable">
+            <thead>
+                <tr id="metricTableHead">
+                    <!-- Metrik sütunları buraya eklenecek -->
+                </tr>
+            </thead>
+            <tbody id="metricTableBody">
+                <!-- Dinamik veriler buraya gelecek -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+        Launch static backdrop modal
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Modal title</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Ülke hakkında bilgi burada gösterilecek...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary tamam-button">Tamam</button>
+                </div>                
+            </div>
+        </div>
+    </div>
+        <!-- Yıllar butonu ve açılır menü -->
+<div class="dropdown">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+      Yılları Seç
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <li><input type="checkbox" class="year-checkbox" value="2023"> 2023</li>
+        <li><input type="checkbox" class="year-checkbox" value="2022"> 2022</li>
+        <li><input type="checkbox" class="year-checkbox" value="2021"> 2021</li>
+        <li><input type="checkbox" class="year-checkbox" value="2020"> 2020</li>
+        <li><input type="checkbox" class="year-checkbox" value="2019"> 2019</li>
+        <li><input type="checkbox" class="year-checkbox" value="2018"> 2018</li>
+        <li><input type="checkbox" class="year-checkbox" value="2017"> 2017</li>
+        <li><input type="checkbox" class="year-checkbox" value="2016"> 2016</li>
+        <li><input type="checkbox" class="year-checkbox" value="2015"> 2015</li>
+        <li><input type="checkbox" class="year-checkbox" value="2014"> 2014</li>
+        <li><input type="checkbox" class="year-checkbox" value="2013"> 2013</li>
+        <li><input type="checkbox" class="year-checkbox" value="2012"> 2012</li>
+        <li><input type="checkbox" class="year-checkbox" value="2011"> 2011</li>
+        <li><input type="checkbox" class="year-checkbox" value="2010"> 2010</li>
+        <li><input type="checkbox" class="year-checkbox" value="2009"> 2009</li>
+        <li><input type="checkbox" class="year-checkbox" value="2008"> 2008</li>
+        <li><input type="checkbox" class="year-checkbox" value="2007"> 2007</li>
+        <li><input type="checkbox" class="year-checkbox" value="2006"> 2006</li>
+        <li><input type="checkbox" class="year-checkbox" value="2005"> 2005</li>
+        <li><input type="checkbox" class="year-checkbox" value="2004"> 2004</li>
+        <li><input type="checkbox" class="year-checkbox" value="2003"> 2003</li>
+        <li><input type="checkbox" class="year-checkbox" value="2002"> 2002</li>
+        <li><input type="checkbox" class="year-checkbox" value="2001"> 2001</li>
+        <li><input type="checkbox" class="year-checkbox" value="2000"> 2000</li>
+        <li><input type="checkbox" class="year-checkbox" value="1999"> 1999</li>
+        <li><input type="checkbox" class="year-checkbox" value="1998"> 1998</li>
+        <li><input type="checkbox" class="year-checkbox" value="1997"> 1997</li>
+        <li><input type="checkbox" class="year-checkbox" value="1996"> 1996</li>
+        <li><input type="checkbox" class="year-checkbox" value="1995"> 1995</li>
+        <li><input type="checkbox" class="year-checkbox" value="1994"> 1994</li>
+        <li><input type="checkbox" class="year-checkbox" value="1993"> 1993</li>
+        <li><input type="checkbox" class="year-checkbox" value="1992"> 1992</li>
+        <li><input type="checkbox" class="year-checkbox" value="1991"> 1991</li>
+        <li><input type="checkbox" class="year-checkbox" value="1990"> 1990</li>
+        <li><input type="checkbox" class="year-checkbox" value="1989"> 1989</li>
+        <li><input type="checkbox" class="year-checkbox" value="1988"> 1988</li>
+        <li><input type="checkbox" class="year-checkbox" value="1987"> 1987</li>
+        <li><input type="checkbox" class="year-checkbox" value="1986"> 1986</li>
+        <li><input type="checkbox" class="year-checkbox" value="1985"> 1985</li>
+        <li><input type="checkbox" class="year-checkbox" value="1984"> 1984</li>
+        
+    </ul>
+  </div>
+  
+  <!-- Filtrelenen sonuçların gösterileceği yer -->
+  <div id="filteredResults"></div>
+  
+    <!-- Bootstrap ve diğer JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./jsFiles/main.js"></script> <!-- Tabloyu yönetecek olan JS dosyası -->
+    <script src="./jsFiles/graphic.js"></script> <!-- Diğer JavaScript dosyası -->
+</body>
+</html>

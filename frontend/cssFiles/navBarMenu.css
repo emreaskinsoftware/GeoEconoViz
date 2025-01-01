@@ -1,0 +1,181 @@
+/* Home (Navigation) Çubuğu */
+.navbar {
+    background-color: #1a1a1a;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hafif gölge efekti */
+}
+
+/* Navbar Logo */
+.navbar-logo {
+    color: white;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Navbar Menü */
+.navbar-menu {
+    list-style: none;
+    display: flex;
+    gap: 40px;
+    margin: 0;
+    padding: 0;
+    margin-right: 40px;
+}
+
+/* Menü Öğeleri */
+.navbar-menu li {
+    display: inline-block;
+}
+
+.navbar-menu li a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    font-size: 1.2em;
+    transition: color 0.3s ease, background-color 0.3s ease;
+    font-family: 'Arial', sans-serif;
+}
+
+.navbar-menu li a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    color: #f0f0f0;
+}
+
+/* Arama Alanı */
+.navbar-search {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    width: 40%;
+}
+
+/* Arama Giriş Kutusu */
+#search-input {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1em;
+    border: 2px solid #ccc;
+    border-radius: 25px;
+    outline: none;
+    background-color: #2b2b2b; /* Daha modern bir arka plan */
+    color: white; /* Beyaz yazı */
+    font-family: 'Arial', sans-serif;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Hafif gölge efekti */
+}
+
+#search-input:focus {
+    border-color: #5a5a5a;
+    background-color: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Daha belirgin gölge efekti */
+}
+
+/* Arama İkonu Butonu */
+.search-icon {
+    margin-left: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Yuvarlak buton */
+    background-color: #333; /* Buton arka planı */
+    color: white; /* İkon rengi */
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.search-icon:hover {
+    background-color: #444; /* Hover için daha açık renk */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Hover gölgesi */
+}
+
+/* Arama Sonuçları Stili */
+.search-results {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    background: #1e1e1e; /* Koyu gri arka plan */
+    color: white; /* Beyaz yazı */
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: none; /* Başlangıçta görünmez */
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Gölge efekti */
+}
+
+/* Liste Elemanları */
+.search-results li {
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1em;
+    font-family: 'Arial', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* İnce alt çizgi */
+}
+
+.search-results li:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Hover için hafif beyaz */
+    color: white;
+}
+
+/* Scrollbar Tasarımı */
+.search-results::-webkit-scrollbar {
+    width: 10px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.search-results::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+/* Genel Stil Ayarları */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family: 'Arial', sans-serif;
+    color: white;
+    background: linear-gradient(to right, black 600px, white);
+    background-repeat: no-repeat; /* Tekrarlanmayı önler */
+}
+.navbar-logo img.project-logo {
+    width: 55px; /* Logonun maksimum genişliğini ayarlar */
+    height: 55px; /* Oranları koruyarak yüksekliği ayarlar */
+    border-radius: 10px; /* Köşeleri hafif yuvarlar */
+    margin-right: 10px; /* Logoyla menü arasında boşluk bırakır */
+    margin-top: 5px;
+}

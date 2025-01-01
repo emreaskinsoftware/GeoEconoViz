@@ -1,0 +1,98 @@
+/* Tablo Konteyneri - İlk Tablo (Kişi Başına Gelir) */
+#incomeTableContainer {
+    position: fixed;
+    top: 250px;
+    left: 650px;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: auto;
+    background-color: #ffffff; /* Beyaz arka plan */
+    border: 1px solid #ddd; /* Hafif gri sınır */
+    border-radius: 8px; /* Yuvarlak köşeler */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Hafif gölge efekti */
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+/* Tablo Konteyneri - İkinci Tablo (Seçilen Metrik Tablosu) */
+#metricTableContainer {
+    position: fixed;
+    top: 250px;
+    right: 10px;
+    width: 550px;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: auto;
+    background-color: #ffffff; /* Beyaz arka plan */
+    border: 1px solid #ddd; /* Hafif gri sınır */
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Hafif gölge efekti */
+    transition: transform 0.3s ease-in-out, max-height 0.3s ease-in-out;
+}
+
+/* Tablo Stilleri */
+table {
+    width: 100%;
+    border-collapse: collapse; /* Hücre kenarlarını birleştir */
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee; /* Hafif alt çizgi */
+    font-size: 0.9em; /* Daha sade yazı boyutu */
+    color: #333; /* Koyu gri yazı */
+    font-family: 'Arial', sans-serif; /* Temiz yazı tipi */
+}
+
+th {
+    background-color: #f9f9f9; /* Hafif gri arka plan */
+    color: #666; /* Orta ton gri yazı */
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #ddd; /* Hafif alt sınır */
+}
+
+td {
+    background-color: #ffffff; /* Beyaz arka plan */
+    color: #555; /* Orta gri yazı */
+}
+
+/* Alternatif satır rengi */
+tr:nth-child(even) td {
+    background-color: #f9f9f9; /* Hafif gri arka plan */
+}
+
+/* Hover Efekti */
+tr:hover td {
+    background-color: #f1f1f1; /* Daha açık gri hover efekti */
+    color: #333; /* Yazı rengi koyulaşır */
+}
+
+/* Tablo hover animasyonu */
+#incomeTableContainer:hover, #metricTableContainer:hover {
+    transform: scale(1.01); /* Hafif büyütme efekti */
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.2); /* Daha belirgin gölge */
+}
+
+/* Scrollbar stilini ayarla (Dikey ve Yatay için) */
+#incomeTableContainer::-webkit-scrollbar, #metricTableContainer::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+#incomeTableContainer::-webkit-scrollbar-thumb, #metricTableContainer::-webkit-scrollbar-thumb {
+    background-color: #ccc; /* Hafif gri kaydırma çubuğu */
+    border-radius: 10px;
+}
+
+#incomeTableContainer::-webkit-scrollbar-thumb:hover, #metricTableContainer::-webkit-scrollbar-thumb:hover {
+    background-color: #aaa; /* Hover durumunda koyulaşır */
+}
+
+#incomeTableContainer::-webkit-scrollbar-track, #metricTableContainer::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Scrollbar arka planı hafif gri */
+}
+
+

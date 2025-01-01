@@ -1,0 +1,142 @@
+/* Modal İçerik Stil Ayarları */
+.modal-content {
+    background-color: #2c2c2c; /* Koyu gri arka plan */
+    color: #ffffff; /* Beyaz metin */
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 500px; /* Maksimum genişlik */
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1); /* Hafif beyaz gölge */
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh; /* Yüksekliği sınırlayın */
+    overflow: hidden; /* İçerik uzun olduğunda dışarı taşmayı engelle */
+    margin: 2px;
+}
+
+/* Modal Başlık Stil Ayarları */
+.modal-header {
+    background-color: black; /* Başlık arka plan rengi */
+    border-bottom: 1px solid #2c2a2a; /* Koyu gri alt kenarlık */
+    padding: 10px 20px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #ffffff; /* Beyaz başlık metni */
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 10px;
+}
+
+/* Bayrak için Stil Ayarları */
+.modal-header img {
+    margin-left: 10px;
+    width: 30px;
+    height: 20px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Modal Gövde Stil Ayarları */
+.modal-body {
+    padding: 15px 20px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #e0e0e0; /* Hafif açık gri metin */
+    overflow-y: auto; /* Uzun içerik için dikey kaydırma */
+    max-height: 50vh; /* İçerik için maksimum yükseklik */
+}
+
+/* Modal Alt Kısım Stil Ayarları */
+.modal-footer {
+    background-color: #2c2c2c; /* Alt kısım arka plan rengi */
+    border-top: 1px solid #444; /* Koyu gri üst kenarlık */
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+/* Butonlar için Stil Ayarları */
+.modal-footer .btn {
+    background-color: #444; /* Koyu gri buton */
+    color: #ffffff;
+    border-radius: 5px;
+    padding: 8px 20px;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.modal-footer .btn:hover {
+    background-color: #555; /* Hover durumu */
+    transform: scale(1.1);
+}
+
+/* Modal arka plan (backdrop) stil ayarları */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85); /* Arka planı siyah ve opak */
+}
+
+/* Modal'ın genel boyutlandırma ve taşma kontrolü */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -20%);
+    width: 100%;
+    max-width: 500px;
+    background-color: #2c2c2c; /* Koyu gri arka plan */
+    border-radius: 10px;
+    padding: 20px;
+    color: #ffffff; /* Beyaz metin rengi */
+    transition: all 0.3s ease;
+}
+.modal-content:hover {
+    transform: scale(1.01); /* Hafif büyüme */
+    box-shadow: 0 12px 30px rgba(255, 255, 255, 0.2); /* Daha belirgin gölge */
+}
+
+/* Dikey kaydırma çubuğunun stili */
+.modal-body::-webkit-scrollbar {
+    width: 6px; /* Çubuk genişliği */
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background-color: #333; /* Arka plan rengi */
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background-color: #555; /* Çubuk rengi */
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background-color: #777; /* Hover durumunda çubuk rengi */
+}
+
+/* Yatay kaydırma çubuğu */
+.modal-body::-webkit-scrollbar-horizontal {
+    height: 6px;
+}
+
+.modal-body::-webkit-scrollbar-thumb-horizontal {
+    background-color: #555;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb-horizontal:hover {
+    background-color: #777;
+}
