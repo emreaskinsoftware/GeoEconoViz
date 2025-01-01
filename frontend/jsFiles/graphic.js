@@ -1,4 +1,5 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_URL } from './config.js';
+
 
 // İlk tabloyu kişi başına gelire göre sıralayıp doldurma
 function loadIncomeTable() {
