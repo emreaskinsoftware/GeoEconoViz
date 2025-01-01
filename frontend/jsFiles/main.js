@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000'; // Geliştirme için localhost
+const API_URL = process.env.REACT_APP_API_URL || 'https://geoeconoviz-1.onrender.com/';
 
 fetch(`${API_URL}/api/token`) // Backend URL'si
     .then(response => {

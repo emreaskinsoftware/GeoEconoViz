@@ -5,7 +5,12 @@ const app = express();
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-app.use(cors());
+const corsOptions = {
+  origin: '*', // Gerekirse belirli bir domain ile sınırlandırabilirsiniz
+  methods: ['GET', 'POST'],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Tokeni frontend'e gönderme
