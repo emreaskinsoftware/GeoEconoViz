@@ -102,8 +102,6 @@ app.get('/countries', async (req, res) => {
       { $sort: { [sortMetric]: -1 } }
     ]);
 
-    
-
     if (countries.length === 0) {
       return res.status(404).json({ message: "Veri bulunamadı." });
     }
@@ -164,45 +162,45 @@ app.get('/countries/find-by-name', async (req, res) => {
   const { name, years } = req.query;
 
   if (!name) {
-      return res.status(400).json({ message: "Ülke adı gereklidir." });
+    return res.status(400).json({ message: "Ülke adı gereklidir." });
   }
 
   try {
-      console.log("Gelen Yıllar:", years);
+    console.log("Gelen Yıllar:", years);
 
-      // Gelen yılları işle
-      let yearArray = [];
-      if (years) {
-          yearArray = years.split(',').map(year => {
-              const date = new Date(year); // Tarihi `Date` formatına çevir
-              if (isNaN(date.getTime())) {
-                  throw new Error(`Geçersiz tarih formatı: ${year}`);
-              }
-              return date; // Doğru şekilde tarih arrayine ekle
-          });
-      }
+    // Gelen yılları işle
+    let yearArray = [];
+    if (years) {
+      yearArray = years.split(',').map(year => {
+        const date = new Date(year); // Tarihi `Date` formatına çevir
+        if (isNaN(date.getTime())) {
+          throw new Error(`Geçersiz tarih formatı: ${year}`);
+        }
+        return date; // Doğru şekilde tarih arrayine ekle
+      });
+    }
 
-      // Sorguyu oluştur
-      const query = {
-          country: { $regex: new RegExp(`^${name}$`, 'i') } // Büyük/küçük harf duyarsız
-      };
+    // Sorguyu oluştur
+    const query = {
+      country: { $regex: new RegExp(`^${name}$`, 'i') } // Büyük/küçük harf duyarsız
+    };
 
-      if (yearArray.length > 0) {
-          query.date = { $in: yearArray }; // Tarih sorgusunu ekle
-      }
+    if (yearArray.length > 0) {
+      query.date = { $in: yearArray }; // Tarih sorgusunu ekle
+    }
 
-      console.log("Oluşturulan Sorgu:", query);
+    console.log("Oluşturulan Sorgu:", query);
 
-      const countries = await Country.find(query);
+    const countries = await Country.find(query).sort({ date: -1 });
 
-      if (countries.length > 0) {
-          res.json(countries);
-      } else {
-          res.status(404).json({ message: "Veri bulunamadı." });
-      }
+    if (countries.length > 0) {
+      res.json(countries);
+    } else {
+      res.status(404).json({ message: "Veri bulunamadı." });
+    }
   } catch (error) {
-      console.error('Error fetching data by name and years:', error);
-      res.status(500).json({ message: error.message });
+    console.error('Error fetching data by name and years:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
