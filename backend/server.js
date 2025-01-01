@@ -11,6 +11,10 @@ const corsOptions = {
   methods: ['GET', 'POST'],
 };
 
+// Frontend statik dosyalarını servis et
+const frontendPath = path.join(__dirname, '../frontend');
+
+
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -202,12 +206,20 @@ app.get('/countries/find-by-name', async (req, res) => {
   }
 });
 
-// Frontend dosyalarını servis et
-app.use(express.static(path.join(__dirname, '../frontend'))); // Frontend klasörünün doğru yolu
+// Tüm statik dosyaları (CSS, JS, görüntüler vb.) servis etmek için middleware
+app.use(express.static(frontendPath));
 
-// Tüm diğer rotalar için index.html dosyasını döndür
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+// Belirli bir dizini ayrı olarak servis etmek isterseniz, özel bir rota tanımlayabilirsiniz
+app.use('/cssFiles', express.static(path.join(frontendPath, 'cssFiles')));
+
+// Tüm bilinmeyen rotalar için index.html döndürme
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'), (err) => {
+    if (err) {
+      console.error('Hata: index.html dosyası yüklenemedi.', err);
+      res.status(500).send('Sunucu hatası.');
+    }
+  });
 });
 
 // Sunucuyu başlatmak için port belirleme
