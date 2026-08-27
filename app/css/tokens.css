@@ -14,8 +14,11 @@
   --ink-650: #21334f;
   --ink-600: #2a3d5d;   /* kenarlık */
   --ink-500: #3b527a;
-  --ink-400: #5b7099;   /* sönük metin, eksen */
-  --ink-300: #8094b6;
+  /* İkincil metinler 11–12 punto mono olarak kullanılıyor; bu ölçekte önceki
+     ton (#5b7099) cam panel üzerinde 3,63:1 veriyordu — WCAG AA eşiği 4,5.
+     Aşağıdaki değerler 5,5 ve 7,5 veriyor, hiyerarşi de korunuyor. */
+  --ink-400: #7a90b5;   /* sönük metin, eksen */
+  --ink-300: #97a9c8;
   --ink-200: #adbfd9;   /* ikincil metin */
   --ink-100: #d2ddef;
   --ink-050: #edf3fc;   /* birincil metin */
@@ -40,9 +43,12 @@
 
   --no-data: #202d44;           /* veri yok dolgusu */
 
-  /* ---- Cam paneller ---- */
-  --glass: rgba(16, 26, 44, .72);
-  --glass-strong: rgba(11, 19, 34, .88);
+  /* ---- Cam paneller ----
+     Opaklık yüksek tutuluyor: panellerin arkasından dönen küre parlak ülkelere
+     geldiğinde zemin açılıyor ve üstündeki metnin kontrastı okunamayacak kadar
+     düşüyordu. Bulanıklık cam etkisini zaten taşıyor. */
+  --glass: rgba(16, 26, 44, .88);
+  --glass-strong: rgba(11, 19, 34, .95);
   --glass-line: rgba(122, 152, 196, .16);
   --glass-blur: blur(20px) saturate(1.3);
 
@@ -50,8 +56,8 @@
   --face-word: 'Archivo', 'Segoe UI', system-ui, sans-serif;
   --face-num: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
 
-  --step--2: .688rem;
-  --step--1: .781rem;
+  --step--2: .75rem;    /* 12px — mono rakamlar 11px'te okunmuyordu */
+  --step--1: .8125rem;
   --step-0:  .875rem;
   --step-1:  1rem;
   --step-2:  1.25rem;

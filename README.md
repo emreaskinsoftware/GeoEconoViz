@@ -33,11 +33,14 @@ barındırıcıya koymak yeterli. Derleme adımı ve ortam değişkeni yoktur.
 | | |
 |---|---|
 | **Dokuz gösterge** | Kişi başına gelir, yaşam süresi, enflasyon, işsizlik, bebek ölüm hızı, intihar hızı, doğum hızı, sağlık harcaması, ilkokul kayıt oranı |
-| **Küre** | CesiumJS; ülkeler seçili göstergeye göre boyanıyor (choropleth) |
+| **Küre** | CesiumJS; gerçek arazi ve batimetri dokusu üzerine ülkeler seçili göstergeye göre boyanıyor (choropleth). Üst çubuktaki düğmeyle düz veri görünümüne geçilebiliyor |
 | **Yıl şeridi** | 1990'dan bugüne sürgü; oynat düğmesiyle otomatik ilerleme |
 | **Sıralama** | Yıl değiştikçe satırlar yeni yerlerine kayarak gidiyor |
 | **Ülke dosyası** | Dokuz göstergenin o yılki değeri, her birinin eğrisi, tam zaman serisi ve Vikipedi özeti |
 | **Bağlantı** | `#/gösterge/yıl/ülke` — açtığınız görünüm paylaşılabilir |
+
+Arazi dokusu Cesium'un kendi paketiyle gelen **Natural Earth II** kabartma ve
+batimetri döşemeleri; dış servis, anahtar ya da depoya eklenmiş görsel yok.
 
 Klavye: `/` aramaya odaklanır, ok tuşları gösterge listesinde dolaşır,
 `Esc` açık paneli kapatır. `prefers-reduced-motion` açıksa tüm animasyonlar

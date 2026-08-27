@@ -123,14 +123,31 @@ export function createTimeline(root, { onYear }) {
 
     renderTicks();
 
-    let next = years.length - 1;
-    if (Number.isFinite(preferred)) {
-      let bestGap = Infinity;
-      years.forEach((y, i) => {
-        const gap = Math.abs(y - preferred);
-        if (gap < bestGap) { bestGap = gap; next = i; }
-      });
+    // Yıl seçimi kapsama duyarlı olmalı. Göstergeler farklı hızlarda
+    // yayımlanıyor: en yeni yılda bazılarında iki yüz ülke varken bazılarında
+    // on üç tane oluyor. Bakılan yıl körü körüne korunursa gösterge
+    // değiştirmek küreyi neredeyse boş bırakıyor.
+    const peak = Math.max(1, ...coverage.values());
+    const solid = years.filter((y) => (coverage.get(y) || 0) >= peak * 0.6);
+    const pool = solid.length ? solid : years;
+
+    let next = -1;
+    // Kullanıcının baktığı yıl yeni gösterge için de yeterince doluysa korunur
+    if (Number.isFinite(preferred) && (coverage.get(preferred) || 0) >= peak * 0.4) {
+      next = years.indexOf(preferred);
     }
+    if (next < 0) {
+      const target = Number.isFinite(preferred) ? preferred : pool[pool.length - 1];
+      // Eşitlikte en yeni yıl kazansın diye `<=` ile artan sırada taranıyor
+      let best = pool[pool.length - 1];
+      let bestGap = Infinity;
+      for (const y of pool) {
+        const gap = Math.abs(y - target);
+        if (gap <= bestGap) { bestGap = gap; best = y; }
+      }
+      next = Math.max(0, years.indexOf(best));
+    }
+
     commit(next, { announce: false });
     return years[next];
   }

@@ -209,6 +209,7 @@
 }
 .icon-btn:hover { background: var(--ink-700); color: var(--ink-050); }
 .icon-btn:active { transform: scale(.92); }
+.icon-btn[aria-pressed="true"] { background: var(--ink-650); color: var(--data-key); }
 
 /* ==========================================================================
    Sol ray: gösterge seçici

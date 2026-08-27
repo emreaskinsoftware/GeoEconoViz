@@ -95,6 +95,14 @@ export function createRanking(root, { onSelect }) {
       descending ? b.value - a.value : a.value - b.value
     );
 
+    /* --- 0) izlenmeyen düğümleri temizle ---
+       İskelet satırları ve "kayıt yok" iletisi `rows` haritasında olmadığı için
+       aşağıdaki silme döngüsü onlara dokunmuyordu; veri gelince gerçek satırların
+       üstünde kalıcı bir boşluk olarak duruyorlardı. */
+    for (const child of [...list.children]) {
+      if (!child._parts) child.remove();
+    }
+
     /* --- FLIP: 1) eski konumları oku --- */
     const before = new Map();
     const viewTop = list.scrollTop;

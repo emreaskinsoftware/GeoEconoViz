@@ -423,7 +423,23 @@ async function main() {
      Böylece gösterge değiştirmek ve ülke dosyasını açmak anında oluyor. */
   prefetchRest();
 
-  /* --- 7. Kaynak bilgisi --- */
+  /* --- 7. Arazi dokusu düğmesi --- */
+  const reliefBtn = document.getElementById('relief-btn');
+  if (!globe.hasRelief) {
+    reliefBtn.hidden = true;                 // doku alınamadıysa düğme de olmasın
+  } else {
+    let wanted = true;
+    try { wanted = localStorage.getItem('geoeconoviz:relief') !== 'off'; } catch { /* engelli depolama */ }
+    reliefBtn.setAttribute('aria-pressed', String(globe.setRealistic(wanted)));
+
+    reliefBtn.addEventListener('click', () => {
+      const on = globe.setRealistic(!globe.realistic);
+      reliefBtn.setAttribute('aria-pressed', String(on));
+      try { localStorage.setItem('geoeconoviz:relief', on ? 'on' : 'off'); } catch { /* yoksay */ }
+    });
+  }
+
+  /* --- 8. Kaynak bilgisi --- */
   document.getElementById('about-btn').addEventListener('click', () => {
     const updated = state.data.get(state.indicatorId)?.updated;
     toast(

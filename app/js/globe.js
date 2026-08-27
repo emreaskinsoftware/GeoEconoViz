@@ -65,6 +65,34 @@ export async function createGlobe(container, handlers = {}) {
   viewer.cesiumWidget.creditContainer.classList.add('cesium-widget-credits');
 
   /* ---------------------------------------------------------------------
+     Kabartma dokusu
+
+     Cesium her sürümünde Natural Earth II kabartma ve batimetri döşemelerini
+     kendi paketiyle birlikte getiriyor. Yani gerçek kıtalar, çöller, buzullar
+     ve okyanus derinliği için Ion anahtarına, dış servise ya da depoya
+     eklenecek bir görsele gerek yok — Cesium'un yüklendiği yerden geliyor.
+
+     Ülke çokgenleri bunun üzerine yarı saydam biniyor: renk okunaklı kalıyor,
+     altındaki arazi dokusu görünüyor. Veri odaklı düz görünüm isteyen için
+     katman kapatılabiliyor.
+     --------------------------------------------------------------------- */
+
+  let relief = null;
+  try {
+    const provider = await Cesium.TileMapServiceImageryProvider.fromUrl(
+      Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
+    );
+    relief = new Cesium.ImageryLayer(provider);
+    // Arazi geri planda dursun, veri öne çıksın
+    relief.brightness = 0.62;
+    relief.saturation = 0.55;
+    relief.contrast = 1.08;
+    viewer.imageryLayers.add(relief);
+  } catch {
+    relief = null;     // doku alınamazsa küre düz koyu kalır, uygulama çalışır
+  }
+
+  /* ---------------------------------------------------------------------
      Ülke çokgenleri
      --------------------------------------------------------------------- */
 
@@ -113,17 +141,26 @@ export async function createGlobe(container, handlers = {}) {
 
   const target = new Map();       // iso3 -> Cesium.Color (hedef)
   let tween = null;
+  let lastColorFor = null;        // katman açılıp kapanınca yeniden boyamak için
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Kabartma açıkken çokgenler saydamlaşır ki arazi görünsün; kapalıyken
+     tam opak olurlar, çünkü altta okunacak bir şey kalmaz. */
+  const dataAlpha = () => (relief && relief.show ? 0.82 : 1);
+  const nullAlpha = () => (relief && relief.show ? 0.3 : 1);
 
   /**
    * @param {(iso3: string) => string|null} colorFor css rengi ya da veri yoksa null
    * @param {number} duration ms
    */
   function paint(colorFor, duration = 520) {
+    lastColorFor = colorFor;
     for (const [iso3] of countries) {
       const css = colorFor(iso3);
-      target.set(iso3, css ? Cesium.Color.fromCssColorString(css) : noData);
+      const color = css ? Cesium.Color.fromCssColorString(css) : Cesium.Color.clone(noData);
+      color.alpha = css ? dataAlpha() : nullAlpha();
+      target.set(iso3, color);
     }
 
     if (tween) cancelAnimationFrame(tween);
@@ -288,12 +325,30 @@ export async function createGlobe(container, handlers = {}) {
     });
   }
 
+  /**
+   * Kabartma dokusunu aç/kapat. Açıkken küre gerçek bir Dünya gibi görünür,
+   * kapalıyken renkler tam doygunlukta okunur.
+   * @returns {boolean} yeni durum
+   */
+  function setRealistic(on) {
+    if (!relief) return false;
+    relief.show = Boolean(on);
+    scene.globe.baseColor = Cesium.Color.fromCssColorString(on ? '#000000' : OCEAN);
+    // Saydamlık değiştiği için mevcut renkleri yeniden uygula
+    if (lastColorFor) paint(lastColorFor, 260);
+    scene.requestRender();
+    return relief.show;
+  }
+
   return {
     viewer,
     countries,
     paint,
     select,
     flyTo,
+    setRealistic,
+    get realistic() { return Boolean(relief && relief.show); },
+    get hasRelief() { return Boolean(relief); },
     introFlight,
     stopSpin,
     startSpin,
