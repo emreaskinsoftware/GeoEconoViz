@@ -112,6 +112,12 @@
   background: var(--paper-2);
   box-shadow: inset 2px 0 0 var(--ink-1);
 }
+/* Karşılaştırmaya sabitlenen ülke listede de görünür: kürede mavi çizgi,
+   burada mavi kenar. Aynı ülke hem seçili hem sabitse seçim öne geçer. */
+.rank-row[data-compare="true"] { box-shadow: inset 2px 0 0 var(--compare); }
+.rank-row[data-compare="true"][aria-current="true"] {
+  box-shadow: inset 2px 0 0 var(--ink-1), inset 5px 0 0 var(--compare);
+}
 
 .rank-pos {
   flex-shrink: 0;
@@ -224,7 +230,14 @@
   transition: background var(--t-fast);
 }
 .stat:hover { background: var(--paper-2); }
-.stat[data-active="true"] { background: var(--data-key-soft); }
+/* Vurgu yarı saydam olduğu için tek başına yazıldığında altındaki ızgara
+   çizgisi (--rule) sızıyor ve kart gri bir zemine oturuyordu: etiket 3,5:1'e
+   düşüyordu. Tint önce kağıdın üstüne bindirilir, sonra karta yazılır. */
+.stat[data-active="true"] {
+  background:
+    linear-gradient(var(--data-key-soft), var(--data-key-soft)),
+    var(--card);
+}
 .stat-label {
   display: block;
   font-size: var(--step--2);
@@ -251,6 +264,95 @@
 }
 .stat-spark { display: block; margin-top: var(--s2); width: 100%; height: 24px; overflow: visible; color: var(--data-key); }
 
+/* --- Karşılaştırma şeridi ---
+   Dosya başlığının hemen altında ince bir kuşak. Üç hâli var ve her hâlde
+   yalnızca o hâlin denetimi görünür; kullanıcı aynı anda iki yol görmez. */
+.compare-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  min-height: 38px;
+  padding: var(--s2) var(--s4);
+  border-bottom: 1px solid var(--rule);
+  background: var(--card-2);
+}
+.compare-bar[data-state="on"] { background: var(--compare-soft); }
+
+.compare-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: var(--step--2);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.compare-toggle:hover { background: var(--paper-2); color: var(--ink-1); }
+.compare-toggle[aria-pressed="true"] {
+  background: var(--compare);
+  border-color: var(--compare);
+  color: #fff;
+}
+.compare-bar[data-state="on"] .compare-toggle { display: none; }
+
+.compare-hint {
+  font-size: var(--step--2);
+  color: var(--ink-3);
+  animation: fade var(--t-base) var(--ease-out);
+}
+.compare-bar:not([data-state="arming"]) .compare-hint { display: none; }
+
+.compare-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 3px 3px 3px var(--s2);
+  border: 1px solid var(--compare-line);
+  border-radius: var(--r-pill);
+  background: var(--card);
+  font-size: var(--step--2);
+  color: var(--ink-1);
+  animation: rise var(--t-base) var(--ease-out);
+}
+.compare-chip[hidden] { display: none; }
+.compare-chip-flag {
+  width: 18px; height: 12px;
+  object-fit: cover;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+.compare-chip-name { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compare-chip-x {
+  display: grid;
+  place-items: center;
+  width: 20px; height: 20px;
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.compare-chip-x:hover { background: var(--compare); color: #fff; }
+
+/* Karta eklenen ikinci ülke değeri — küçük mavi noktayla imzalanır */
+.stat-vs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  font-size: var(--step--2);
+  color: var(--compare);
+  animation: fade var(--t-base) var(--ease-out);
+}
+.stat-vs i {
+  width: 6px; height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--compare);
+}
+
 /* --- Zaman serisi grafiği --- */
 .series {
   margin-top: var(--s5);
@@ -259,6 +361,28 @@
 }
 .series-head { margin-bottom: var(--s3); }
 .series-title { font-size: var(--step-0); font-weight: 600; color: var(--ink-2); }
+
+/* İki ülkenin o yılki değeri ve aradaki fark — grafiğe bakmadan da okunur */
+.series-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s4);
+  margin-top: var(--s2);
+  font-size: var(--step--2);
+  color: var(--ink-2);
+}
+.series-legend[hidden] { display: none; }
+.series-key { display: inline-flex; align-items: center; gap: 6px; }
+.series-key b { font-family: var(--face-num); color: var(--ink-1); }
+.series-key i {
+  width: 14px; height: 0;
+  flex-shrink: 0;
+  border-top: 2px solid var(--data-key);
+  border-radius: 2px;
+}
+.series-key[data-kind="b"] i { border-top-style: dashed; border-top-color: var(--compare); }
+.series-key[data-kind="d"] i { display: none; }
+.series-key[data-kind="d"] { color: var(--ink-3); }
 .series-chart { position: relative; width: 100%; height: 168px; }
 .series-chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
 
@@ -284,6 +408,23 @@
 .series-axis { font-family: var(--face-num); font-size: 10px; fill: var(--ink-3); }
 .series-cursor { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 3 3; }
 .series-dot { fill: var(--card); stroke: var(--data-key); stroke-width: 2.5; transition: stroke var(--t-tint) var(--ease-out); }
+
+/* İkinci ülke: kesikli mavi. Kesiklik renkten bağımsız bir ayırt edici —
+   renk körlüğünde de hangi eğrinin hangisi olduğu belli olur. */
+.series-line-b {
+  fill: none;
+  stroke: var(--compare);
+  stroke-width: 1.75;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  animation: fade var(--t-slow) 120ms var(--ease-out) forwards;
+}
+.series-dot-b { fill: var(--card); stroke: var(--compare); stroke-width: 2.5; }
+/* Karşılaştırmada dolgu geri çekilir; iki eğri de aynı ağırlıkta okunmalı */
+svg[data-compare="true"] .series-area { animation-name: fade-soft; }
+@keyframes fade-soft { to { opacity: .45; } }
 .series-hit { fill: transparent; cursor: crosshair; }
 
 .series-tip {
@@ -303,6 +444,13 @@
 }
 .series-tip[data-open="true"] { opacity: 1; }
 .series-tip b { font-family: var(--face-num); }
+
+/* Çift kuruluyken ipucu tek satır değil, küçük bir tablo */
+.series-tip-year { display: block; color: var(--on-plate-2); margin-bottom: 3px; }
+.series-tip-row { display: flex; align-items: baseline; gap: var(--s3); justify-content: space-between; }
+.series-tip-who { color: var(--on-plate-2); }
+.series-tip-row[data-kind="b"] .series-tip-who { color: #9fb8d8; }
+.series-tip-row[data-kind="d"] { margin-top: 3px; padding-top: 3px; border-top: 1px solid rgba(239, 241, 236, .2); }
 
 /* --- Ansiklopedi özeti --- */
 .summary {

@@ -42,6 +42,14 @@
 
   --no-data: #b9beb3;                /* veri yok dolgusu */
 
+  /* ---- Karşılaştırma mürekkebi ----
+     İkinci ülke, haritacının ikinci kalemiyle çizilir. Üç veri rampasının
+     (yeşil, kızıl, mor) hiçbirine karışmayan koyu bir mavi seçildi; beyaz
+     üzerinde 8,9:1 kontrast veriyor. */
+  --compare:      #2f4b74;
+  --compare-soft: rgba(47, 75, 116, .10);
+  --compare-line: rgba(47, 75, 116, .42);
+
   /* ---- Tipografi: sözcükler ile ölçümler ayrı seslerle konuşur. ---- */
   --face-word: 'Archivo', 'Segoe UI', system-ui, sans-serif;
   --face-num: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;

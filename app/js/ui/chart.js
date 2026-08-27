@@ -75,11 +75,17 @@ export function sparkline(points, { width = 160, height = 30 } = {}) {
 /**
  * Ülkenin etkin göstergedeki tam zaman serisi.
  *
+ * `compare` verilirse ikinci ülke aynı eksene çizilir. Eksen bilerek ortak:
+ * karşılaştırmanın bütün anlamı iki eğrinin aynı ölçekte okunması. Her seriyi
+ * kendi ölçeğine sığdırmak ikisini de birbirine benzetirdi.
+ *
  * @param {HTMLElement} host
  * @param {{points: Array<{year:number,value:number}>, indicator: object,
- *          year: number, onScrub?: (year:number|null)=>void}} opts
+ *          year: number, name?: string,
+ *          compare?: {points: Array<{year:number,value:number}>, name: string},
+ *          onScrub?: (year:number|null)=>void}} opts
  */
-export function renderSeries(host, { points, indicator, year, onScrub }) {
+export function renderSeries(host, { points, indicator, year, name, compare, onScrub }) {
   host.textContent = '';
   const tip = document.createElement('div');
   tip.className = 'series-tip';
@@ -93,6 +99,9 @@ export function renderSeries(host, { points, indicator, year, onScrub }) {
     return;
   }
 
+  // Karşılaştırılan ülkenin de en az iki kaydı yoksa çizilecek ikinci eğri yok
+  const twin = compare && compare.points.length > 1 ? compare.points : null;
+
   const W = 800;
   const H = 190;
   const padL = 52;
@@ -100,8 +109,11 @@ export function renderSeries(host, { points, indicator, year, onScrub }) {
   const padT = 14;
   const padB = 26;
 
-  const xs = points.map((p) => p.year);
-  const ys = points.map((p) => p.value);
+  // Alan iki serinin birleşimi: bir ülkenin kaydı erken bitiyorsa eğrisi orada
+  // kesilir, ölçek kaymaz.
+  const all = twin ? points.concat(twin) : points;
+  const xs = all.map((p) => p.year);
+  const ys = all.map((p) => p.value);
   const x0 = Math.min(...xs);
   const x1 = Math.max(...xs);
   let y0 = Math.min(...ys);
@@ -119,8 +131,11 @@ export function renderSeries(host, { points, indicator, year, onScrub }) {
     viewBox: `0 0 ${W} ${H}`,
     preserveAspectRatio: 'none',
     role: 'img',
-    'aria-label': `${indicator.long}, ${x0}–${x1} zaman serisi`,
+    'aria-label': twin
+      ? `${indicator.long}: ${name || 'seçili ülke'} ve ${compare.name} karşılaştırması, ${x0}–${x1}`
+      : `${indicator.long}, ${x0}–${x1} zaman serisi`,
   });
+  if (twin) svg.dataset.compare = 'true';
 
   // Çizgi altındaki dolgu için degrade
   const defs = el('defs');
@@ -148,14 +163,24 @@ export function renderSeries(host, { points, indicator, year, onScrub }) {
   }
   svg.append(grid, axis);
 
-  /* --- Alan ve çizgi --- */
-  const line = points
+  const lineFor = (list) => list
     .map((p, i) => `${i ? 'L' : 'M'}${sx(p.year).toFixed(1)},${sy(p.value).toFixed(1)}`)
     .join('');
 
+  /* --- Karşılaştırılan ülke arkada: kesikli referans çizgisi ---
+     Kesiklik rengi görmeyen için de ayırt edici; renk tek başına taşımıyor. */
+  if (twin) svg.appendChild(el('path', { class: 'series-line-b', d: lineFor(twin) }));
+
+  /* --- Alan ve çizgi --- */
+  const line = lineFor(points);
+  // Kapanış kenarları serinin kendi uçlarından alınır; birleşik eksende ilk
+  // yıl karşılaştırılan ülkeye ait olabiliyor.
+  const ownX0 = points[0].year;
+  const ownX1 = points[points.length - 1].year;
+
   svg.appendChild(el('path', {
     class: 'series-area',
-    d: `${line}L${sx(x1).toFixed(1)},${H - padB}L${sx(x0).toFixed(1)},${H - padB}Z`,
+    d: `${line}L${sx(ownX1).toFixed(1)},${H - padB}L${sx(ownX0).toFixed(1)},${H - padB}Z`,
   }));
 
   const stroke = el('path', { class: 'series-line', d: line });
@@ -164,16 +189,38 @@ export function renderSeries(host, { points, indicator, year, onScrub }) {
   /* --- Etkin yılın imleci --- */
   const cursor = el('line', { class: 'series-cursor', y1: padT, y2: H - padB, opacity: 0 });
   const dot = el('circle', { class: 'series-dot', r: 4.5, opacity: 0 });
-  svg.append(cursor, dot);
+  const dotB = el('circle', { class: 'series-dot-b', r: 4, opacity: 0 });
+  svg.append(cursor, dotB, dot);
 
+  const at = (list, yr) => list.find((p) => p.year === yr) || null;
+
+  /**
+   * İmleci verilen yıla taşı. İki nokta birbirinden bağımsız: bir ülkenin o
+   * yıl kaydı olmayabilir, diğeri yine de gösterilir.
+   */
   const place = (yr) => {
-    const point = points.find((p) => p.year === yr);
-    if (!point) { cursor.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); return null; }
-    const x = sx(point.year);
-    const y = sy(point.value);
-    cursor.setAttribute('x1', x); cursor.setAttribute('x2', x); cursor.setAttribute('opacity', 0.6);
-    dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('opacity', 1);
-    return { point, x, y };
+    const a = at(points, yr);
+    const b = twin ? at(twin, yr) : null;
+    if (!a && !b) {
+      cursor.setAttribute('opacity', 0);
+      dot.setAttribute('opacity', 0);
+      dotB.setAttribute('opacity', 0);
+      return null;
+    }
+    const x = sx(yr);
+    cursor.setAttribute('x1', x);
+    cursor.setAttribute('x2', x);
+    cursor.setAttribute('opacity', 0.6);
+
+    if (a) {
+      dot.setAttribute('cx', x); dot.setAttribute('cy', sy(a.value)); dot.setAttribute('opacity', 1);
+    } else dot.setAttribute('opacity', 0);
+
+    if (b) {
+      dotB.setAttribute('cx', x); dotB.setAttribute('cy', sy(b.value)); dotB.setAttribute('opacity', 1);
+    } else dotB.setAttribute('opacity', 0);
+
+    return { year: yr, a, b, x, y: sy((a || b).value) };
   };
 
   /* --- Üzerinde gezinme --- */
@@ -186,26 +233,66 @@ export function renderSeries(host, { points, indicator, year, onScrub }) {
   svg.appendChild(hit);
   host.insertBefore(svg, tip);
 
+  const tipRow = (label, text, kind) => {
+    const row = document.createElement('span');
+    row.className = 'series-tip-row';
+    row.dataset.kind = kind;
+    const who = document.createElement('span');
+    who.className = 'series-tip-who';
+    who.textContent = label;
+    const val = document.createElement('b');
+    val.textContent = text;
+    row.append(who, val);
+    return row;
+  };
+
   const showTip = (info) => {
     if (!info) { tip.dataset.open = 'false'; return; }
     const box = host.getBoundingClientRect();
-    tip.innerHTML = '';
-    tip.append(
-      document.createTextNode(`${info.point.year} · `),
-      Object.assign(document.createElement('b'), { textContent: indicator.format(info.point.value) })
-    );
+    tip.textContent = '';
+
+    if (!twin) {
+      tip.append(
+        document.createTextNode(`${info.year} · `),
+        Object.assign(document.createElement('b'), {
+          textContent: info.a ? indicator.format(info.a.value) : 'veri yok',
+        })
+      );
+    } else {
+      const head = document.createElement('span');
+      head.className = 'series-tip-year';
+      head.textContent = String(info.year);
+      tip.append(
+        head,
+        tipRow(name || 'Seçili', info.a ? indicator.format(info.a.value) : 'veri yok', 'a'),
+        tipRow(compare.name, info.b ? indicator.format(info.b.value) : 'veri yok', 'b')
+      );
+      if (info.a && info.b) {
+        const diff = info.a.value - info.b.value;
+        tip.appendChild(
+          tipRow('fark', (diff >= 0 ? '+' : '−') + indicator.format(Math.abs(diff)), 'd')
+        );
+      }
+    }
+
     tip.style.left = `${(info.x / W) * box.width}px`;
     tip.style.top = `${(info.y / H) * box.height}px`;
     tip.dataset.open = 'true';
   };
 
+  // Yakalanabilir yıllar iki serinin birleşimi; yoksa yalnız karşılaştırılan
+  // ülkenin verisi olan yıllarda imleç hiç durmazdı.
+  const years = twin
+    ? [...new Set([...points, ...twin].map((p) => p.year))].sort((a, b) => a - b)
+    : points.map((p) => p.year);
+
   const nearest = (clientX) => {
     const box = svg.getBoundingClientRect();
     const local = ((clientX - box.left) / box.width) * W;
     const yr = x0 + ((local - padL) / (W - padL - padR)) * (x1 - x0);
-    let best = points[0];
-    for (const p of points) if (Math.abs(p.year - yr) < Math.abs(best.year - yr)) best = p;
-    return best.year;
+    let best = years[0];
+    for (const y of years) if (Math.abs(y - yr) < Math.abs(best - yr)) best = y;
+    return best;
   };
 
   hit.addEventListener('pointermove', (e) => {

@@ -27,6 +27,12 @@ const state = {
   indicatorId: DEFAULT_INDICATOR,
   year: null,
   iso3: null,
+  /**
+   * Karşılaştırmaya sabitlenen ülke. Tek alan iki durumu birden taşıyor:
+   * seçili ülkeye eşitse "ikinci ülke bekleniyor", farklıysa çift kurulu.
+   * Ayrı bir bayrak tutmak ikisinin birbirinden kayması demekti.
+   */
+  compareIso3: null,
   countries: new Map(),
   /** göstergeId -> { byCountry, years, updated } */
   data: new Map(),
@@ -88,6 +94,11 @@ function coverageFor(indicatorId) {
   return counts;
 }
 
+/** Çift gerçekten kurulu mu? Sabitlenen ülke seçilinin kendisiyse değil. */
+const comparing = () =>
+  Boolean(state.compareIso3) && state.compareIso3 !== state.iso3
+  && state.countries.has(state.compareIso3);
+
 /** Bir ülkenin bir göstergedeki tam serisi, yıla göre sıralı. */
 function seriesFor(iso3, indicatorId) {
   const byYear = state.data.get(indicatorId)?.byCountry?.[iso3];
@@ -120,6 +131,7 @@ function render({ repaintGlobe = true, paintDuration = 520 } = {}) {
   }
 
   rail.update(ind, scale);
+  ranking.markCompare(state.compareIso3);
   ranking.render({
     indicator: ind,
     year: state.year,
@@ -201,13 +213,7 @@ function selectCountry(iso3, { fly = true } = {}) {
     globe?.flyTo(country.lon, country.lat, { height: 1.15e7 });
   }
 
-  dossier.open({
-    iso3,
-    country,
-    indicator: indicator(),
-    year: state.year,
-    seriesFor: (indId) => seriesFor(iso3, indId),
-  });
+  dossier.open(dossierPayload(iso3));
 
   panelTabs.enable(country.name);
   panelTabs.show('dossier');
@@ -217,31 +223,82 @@ function selectCountry(iso3, { fly = true } = {}) {
   writeHash();
 }
 
+/**
+ * Dosyanın tek giriş verisi. Karşılaştırma alanı üç değerden birini alır:
+ * `null` kapalı, `{}` ikinci ülke bekleniyor, künye + seri ise çift kurulu.
+ */
+function dossierPayload(iso3) {
+  let compare = null;
+  if (state.compareIso3) {
+    const cmp = state.compareIso3;
+    compare = comparing()
+      ? {
+          country: state.countries.get(cmp),
+          seriesFor: (indId) => seriesFor(cmp, indId),
+        }
+      : {};
+  }
+
+  return {
+    iso3,
+    country: state.countries.get(iso3),
+    indicator: indicator(),
+    year: state.year,
+    seriesFor: (indId) => seriesFor(iso3, indId),
+    compare,
+  };
+}
+
 /** Özet çubuğunda yazan satır: etkin göstergenin o ülkedeki değeri. */
 function peekText(iso3) {
   const ind = indicator();
   const value = lastValues.get(iso3);
-  return Number.isFinite(value)
-    ? `${ind.name} · ${ind.format(value)}`
-    : `${ind.name} · veri yok`;
+  const own = Number.isFinite(value) ? ind.format(value) : 'veri yok';
+  if (!comparing()) return `${ind.name} · ${own}`;
+
+  // Dar ekranda karşılaştırmanın asıl çıktısı fark; sayı iki kez yazılmasın.
+  const other = lastValues.get(state.compareIso3);
+  const otherName = state.countries.get(state.compareIso3).name;
+  if (!Number.isFinite(value) || !Number.isFinite(other)) {
+    return `${own} · ${otherName}: ${Number.isFinite(other) ? ind.format(other) : 'veri yok'}`;
+  }
+  const diff = value - other;
+  return `${own} · ${otherName} ile fark ${diff >= 0 ? '+' : '−'}${ind.format(Math.abs(diff))}`;
 }
 
 function refreshDossier() {
   if (!state.iso3 || dossier.iso3 !== state.iso3) return;
-  dossier.open({
-    iso3: state.iso3,
-    country: state.countries.get(state.iso3),
-    indicator: indicator(),
-    year: state.year,
-    seriesFor: (indId) => seriesFor(state.iso3, indId),
-  });
+  dossier.open(dossierPayload(state.iso3));
+}
+
+/**
+ * Karşılaştırma çiftini kur ya da kaldır.
+ *
+ * Sabitlenen ülke küre üzerinde de mavi kalemle çevrelenir; `globe.select`
+ * eski seçimin çizgisini geri yazarken bu rolü kendisi görüyor, o yüzden
+ * burada ayrıca sıra gütmek gerekmiyor.
+ */
+function setCompareTarget(iso3) {
+  state.compareIso3 = iso3 && state.countries.has(iso3) ? iso3 : null;
+  globe?.setCompare(state.compareIso3);
+  ranking.markCompare(state.compareIso3);
+  refreshDossier();
+  writeHash();
+}
+
+function toggleCompare() {
+  if (!state.iso3) return;
+  setCompareTarget(state.compareIso3 ? null : state.iso3);
 }
 
 function clearCountry() {
   state.iso3 = null;
+  state.compareIso3 = null;
   globe?.select(null);
+  globe?.setCompare(null);
   globe?.holdSpin(false);
   ranking.select(null, { scroll: false });
+  ranking.markCompare(null);
   dossier.close();
   panelTabs.show('rank');
   panelTabs.disable();
@@ -250,25 +307,30 @@ function clearCountry() {
 }
 
 /* ==========================================================================
-   Bağlantı paylaşımı: #/gösterge/yıl/ülke
+   Bağlantı paylaşımı: #/gösterge/yıl/ülke/karşılaştırılan
    ========================================================================== */
 
 let hashLock = false;
+
+const isIso = (v) => Boolean(v) && /^[A-Z-]{3,5}$/.test(v);
 
 function writeHash() {
   hashLock = true;
   const parts = ['', state.indicatorId, state.year];
   if (state.iso3) parts.push(state.iso3);
+  // Çift ancak bir ülke seçiliyken anlamlı; yalnız başına bağlantıya yazılmaz
+  if (state.iso3 && comparing()) parts.push(state.compareIso3);
   history.replaceState(null, '', `#${parts.join('/')}`);
   requestAnimationFrame(() => { hashLock = false; });
 }
 
 function readHash() {
-  const [, id, year, iso3] = decodeURIComponent(location.hash.slice(1)).split('/');
+  const [, id, year, iso3, cmp] = decodeURIComponent(location.hash.slice(1)).split('/');
   return {
     indicatorId: BY_ID[id] ? id : null,
     year: Number.isFinite(Number(year)) ? Number(year) : null,
-    iso3: iso3 && /^[A-Z-]{3,5}$/.test(iso3) ? iso3 : null,
+    iso3: isIso(iso3) ? iso3 : null,
+    compareIso3: isIso(cmp) && cmp !== iso3 ? cmp : null,
   };
 }
 
@@ -509,13 +571,19 @@ async function main() {
   });
   dossier = createDossier(document.getElementById('dossier'), {
     onIndicatorPick: (id) => selectIndicator(id),
+    onCompareToggle: () => toggleCompare(),
+    onCompareClear: () => setCompareTarget(null),
     onClose: () => {
       state.iso3 = null;
+      state.compareIso3 = null;
       globe?.select(null);
+      globe?.setCompare(null);
       globe?.holdSpin(false);
       ranking.select(null, { scroll: false });
+      ranking.markCompare(null);
       panelTabs.show('rank');
       panelTabs.disable();
+      writeHash();
     },
   });
   shifts = createShifts(document.getElementById('rail'), {
@@ -559,14 +627,20 @@ async function main() {
   // Konsoldan bakmak için tek tutamak: geoEconoViz.state, .globe, .render()
   // Tek sayfalık bir uygulamada işe yarıyor, sunumda da veri göstermeyi
   // kolaylaştırıyor.
-  window.geoEconoViz = { state, globe, render, selectIndicator, selectCountry };
+  window.geoEconoViz = {
+    state, globe, render, selectIndicator, selectCountry, setCompareTarget, toggleCompare,
+  };
 
   progress('Hazır', 1);
   boot.dataset.done = 'true';
   globe.introFlight();
 
   if (initial.iso3 && state.countries.has(initial.iso3)) {
-    setTimeout(() => selectCountry(initial.iso3), 900);
+    setTimeout(() => {
+      // Çift önce kurulur ki dosya tek seferde iki eğriyle açılsın
+      if (initial.compareIso3) setCompareTarget(initial.compareIso3);
+      selectCountry(initial.iso3);
+    }, 900);
   }
 
   /* --- 6. Kalan göstergeleri arka planda getir ---
@@ -598,10 +672,23 @@ async function main() {
     );
   });
 
+  /* --- 9. Karşılaştırma kısayolu ---
+     Yazarken tetiklenmesin diye alanların içinde susar. */
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'c' && e.key !== 'C') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target;
+    if (t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    if (!state.iso3) return;
+    e.preventDefault();
+    toggleCompare();
+  });
+
   window.addEventListener('hashchange', () => {
     if (hashLock) return;
     const next = readHash();
     if (next.indicatorId && next.indicatorId !== state.indicatorId) selectIndicator(next.indicatorId);
+    if (next.compareIso3 !== state.compareIso3) setCompareTarget(next.compareIso3);
     if (next.iso3 && next.iso3 !== state.iso3) selectCountry(next.iso3);
   });
 }

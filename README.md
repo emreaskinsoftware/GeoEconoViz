@@ -38,8 +38,9 @@ barındırıcıya koymak yeterli. Derleme adımı ve ortam değişkeni yoktur.
 | **Sıralama** | Yıl değiştikçe satırlar yeni yerlerine kayarak gidiyor |
 | **Ülke dosyası** | Dokuz göstergenin o yılki değeri, her birinin eğrisi, tam zaman serisi ve Vikipedi özeti. Sıralamayla aynı sütunda, sekmeli — küreyi hiçbir zaman kapatmaz |
 | **En çok değişen** | Seçili göstergede 1990'dan bu yana en çok yükselen ve gerileyen ülke; tıklayınca oraya uçuyor |
+| **Karşılaştırma** | Bir ülke sabitlenir, sonra gezilen her ülke onun üzerine çizilir: zaman serisinde iki eğri aynı eksende, dokuz kartta iki değer, aradaki fark her yıl için |
 | **Kendiliğinden dönüş** | Küre boştayken yavaşça dönüyor; dokunulunca duruyor, ülke seçiliyken dönmüyor |
-| **Bağlantı** | `#/gösterge/yıl/ülke` — açtığınız görünüm paylaşılabilir |
+| **Bağlantı** | `#/gösterge/yıl/ülke/karşılaştırılan` — açtığınız görünüm, kurduğunuz çift dahil paylaşılabilir |
 
 Arazi dokusu Cesium'un kendi paketiyle gelen **Natural Earth II** kabartma ve
 batimetri döşemeleri; dış servis, anahtar ya da depoya eklenmiş görsel yok.
@@ -48,8 +49,13 @@ Dar ekranda yan paneller alttan gelen tabakaya dönüşüyor ve bir ülke seçme
 onları açmıyor: kürenin alt kenarında ince bir özet çubuğu beliriyor, ayrıntı
 isteyen ona dokunuyor. Böylece seçilen yer her zaman görünür kalıyor.
 
-Klavye: `/` aramaya odaklanır, ok tuşları gösterge listesinde dolaşır,
-`Esc` açık paneli kapatır. `prefers-reduced-motion` açıksa tüm animasyonlar
+Karşılaştırmada ikinci ülke kesikli mavi çizilir. Kesiklik renkten bağımsız
+bir ayırt edici: renk körlüğünde de hangi eğrinin hangisi olduğu belli olur.
+Eksen bilerek ortak — her seriyi kendi ölçeğine sığdırmak ikisini birbirine
+benzetirdi.
+
+Klavye: `/` aramaya odaklanır, `c` seçili ülkeyi karşılaştırmaya sabitler,
+ok tuşları gösterge listesinde dolaşır, `Esc` açık paneli kapatır. `prefers-reduced-motion` açıksa tüm animasyonlar
 kapanır, hiçbir bilgi kaybolmaz.
 
 ---
@@ -165,6 +171,11 @@ adlandırmalar kullanıyordu (bozuk bayraklar, çevrilmemiş ülke adları); Boo
 `.tooltip{opacity:0}` kuralı özel ipucunu tamamen görünmez kılıyordu; her fare
 hareketinde 180 çokgende ışın atılıyordu; iki ayrı betik aynı tabloyu farklı
 indeks düzenleriyle yazıp birbirini eziyordu; düzen tamamen sabit piksellerdi.
+
+Sonradan ölçümle yakalanan bir okunurluk kusuru: etkin gösterge kartının vurgu
+rengi yarı saydamdı ve ızgara çizgisinin üstüne düşüyordu; kart beyaz yerine
+gri bir zemine oturuyor, etiket 3,5:1'e iniyordu. Tint artık kağıdın üstüne
+bindiriliyor, oran 5,5:1.
 
 ---
 

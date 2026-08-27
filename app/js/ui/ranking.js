@@ -22,6 +22,7 @@ export function createRanking(root, { onSelect }) {
   const rows = new Map();        // iso3 -> <li>
   let descending = true;
   let selected = null;
+  let compared = null;
   let lastRender = null;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -136,6 +137,7 @@ export function createRanking(root, { onSelect }) {
       value.textContent = indicator.formatShort(entry.value);
       btn.style.setProperty('--bar', `${((entry.value - floor) / span) * 100}%`);
       btn.setAttribute('aria-current', String(entry.iso3 === selected));
+      btn.dataset.compare = String(entry.iso3 === compared);
       btn.title = `${country.name} · ${indicator.format(entry.value)}`;
 
       seen.add(entry.iso3);
@@ -201,6 +203,14 @@ export function createRanking(root, { onSelect }) {
     }
   }
 
+  /** Karşılaştırmaya sabitlenmiş ülkeyi listede de işaretle. */
+  function markCompare(iso3) {
+    compared = iso3;
+    for (const [id, li] of rows) {
+      li._parts.btn.dataset.compare = String(id === iso3);
+    }
+  }
+
   function showSkeleton() {
     list.textContent = '';
     rows.clear();
@@ -219,5 +229,5 @@ export function createRanking(root, { onSelect }) {
     }
   }
 
-  return { render, select, showSkeleton };
+  return { render, select, markCompare, showSkeleton };
 }

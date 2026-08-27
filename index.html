@@ -53,6 +53,9 @@
   <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="m6 15 6-6 6 6"/>
   </symbol>
+  <symbol id="i-compare" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="9" cy="12" r="6.2"/><circle cx="15" cy="12" r="6.2"/>
+  </symbol>
   <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
     <circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor" stroke="none"/>
   </symbol>
@@ -205,6 +208,24 @@
         </button>
       </header>
 
+      <!-- Karşılaştırma şeridi: bir ülke sabitlenir, sonra gezilen her ülke
+           onun üzerine çizilir. Üç durumu var: kapalı, ikinci ülke bekleniyor,
+           çift kurulu. -->
+      <div class="compare-bar" data-state="off">
+        <button type="button" class="compare-toggle" aria-pressed="false">
+          <svg width="14" height="14" aria-hidden="true"><use href="#i-compare"/></svg>
+          <span class="compare-toggle-text">Karşılaştır</span>
+        </button>
+        <p class="compare-hint">Şimdi ikinci ülkeyi seçin.</p>
+        <div class="compare-chip" hidden>
+          <img class="compare-chip-flag" alt="" width="20" height="14">
+          <span class="compare-chip-name"></span>
+          <button type="button" class="compare-chip-x" aria-label="Karşılaştırmayı kaldır">
+            <svg width="12" height="12" aria-hidden="true"><use href="#i-x"/></svg>
+          </button>
+        </div>
+      </div>
+
       <div class="dossier-body scroll-slim">
         <p class="eyebrow">Seçili yılın göstergeleri</p>
         <div class="stat-grid"></div>
@@ -212,6 +233,7 @@
         <section class="series">
           <div class="series-head">
             <h3 class="series-title"></h3>
+            <div class="series-legend" hidden></div>
           </div>
           <div class="series-chart"></div>
         </section>

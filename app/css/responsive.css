@@ -104,7 +104,12 @@
     font-size: var(--step-0);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .peek-value { font-size: var(--step--2); color: var(--ink-3); }
+  /* Karşılaştırma açıkken bu satır fark bilgisini de taşıyor; taşmasın */
+  .peek-value {
+    font-size: var(--step--2);
+    color: var(--ink-3);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   .peek-chevron { flex-shrink: 0; color: var(--ink-3); }
 }
 
@@ -173,6 +178,8 @@
 @media print {
   body { overflow: visible; background: #fff; }
   #globe, .timeline, .rail, .toasts, .boot, .topbar-actions, .scrim { display: none !important; }
+  /* Kağıtta denetim yok; karşılaştırılan ülkenin künyesi kalsın */
+  .compare-toggle, .compare-hint, .compare-chip-x, .peek { display: none !important; }
   .shell { position: static; display: block; padding: 0; }
   .rank {
     position: static;

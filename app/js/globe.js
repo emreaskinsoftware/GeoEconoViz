@@ -116,6 +116,8 @@ export async function createGlobe(container, handlers = {}) {
 
   const borderColor = Cesium.Color.fromCssColorString(BORDER);
   const selectedColor = Cesium.Color.fromCssColorString('#0d100c');
+  // Karşılaştırma kalemi — tokens.css'teki --compare ile aynı mavi
+  const compareColor = Cesium.Color.fromCssColorString('#2f4b74');
   const noData = Cesium.Color.fromCssColorString(NO_DATA);
 
   /** ISO3 -> { entities: [...], name } */
@@ -157,19 +159,19 @@ export async function createGlobe(container, handlers = {}) {
   let tween = null;
   let lastColorFor = null;        // katman açılıp kapanınca yeniden boyamak için
   let selected = null;
+  let compared = null;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* Kabartma açıkken çokgenler saydamlaşır ki arazi görünsün; kapalıyken
      tam opak olurlar, çünkü altta okunacak bir şey kalmaz.
 
-     Seçili ülke her hâlükârda tam opak: Cesium'un çizgi kalınlığı çoğu
+     İşaretli ülkeler her hâlükârda tam opak: Cesium'un çizgi kalınlığı çoğu
      platformda 1 pikselle sınırlı olduğu için seçimi asıl belli eden şey
      kenarlık değil, komşularından ayrışan doluluk. */
-  const dataAlpha = (iso3) =>
-    iso3 === selected ? 1 : (relief && relief.show ? 0.78 : 1);
-  const nullAlpha = (iso3) =>
-    iso3 === selected ? 0.9 : (relief && relief.show ? 0.25 : 1);
+  const marked = (iso3) => iso3 !== null && (iso3 === selected || iso3 === compared);
+  const dataAlpha = (iso3) => (marked(iso3) ? 1 : (relief && relief.show ? 0.78 : 1));
+  const nullAlpha = (iso3) => (marked(iso3) ? 0.9 : (relief && relief.show ? 0.25 : 1));
 
   /**
    * @param {(iso3: string) => string|null} colorFor css rengi ya da veri yoksa null
@@ -248,13 +250,35 @@ export async function createGlobe(container, handlers = {}) {
     }
   }
 
+  /**
+   * Bir ülkenin çizgisini ve saydamlığını, o an taşıdığı role göre yeniden yaz.
+   * İki işaret aynı ülkeye denk gelebildiği için "eskiyi sıfırla" demek yetmez:
+   * seçim kalkarken ülke hâlâ karşılaştırma çifti olabilir.
+   */
+  function restoreMark(iso3) {
+    if (!iso3) return;
+    if (iso3 === selected) setOutline(iso3, selectedColor, 2);
+    else if (iso3 === compared) setOutline(iso3, compareColor, 2);
+    else setOutline(iso3, borderColor, 1);
+    refreshAlpha(iso3);
+  }
+
   function select(iso3) {
     if (selected === iso3) return;
     const previous = selected;
     selected = iso3;
+    restoreMark(previous);
+    restoreMark(iso3);
+    scene.requestRender();
+  }
 
-    if (previous) { setOutline(previous, borderColor, 1); refreshAlpha(previous); }
-    if (iso3) { setOutline(iso3, selectedColor, 2); refreshAlpha(iso3); }
+  /** Karşılaştırma çifti — ikinci kalemle çizilmiş gibi ayrı bir çizgi rengi. */
+  function setCompare(iso3) {
+    if (compared === iso3) return;
+    const previous = compared;
+    compared = iso3;
+    restoreMark(previous);
+    restoreMark(iso3);
     scene.requestRender();
   }
 
@@ -387,6 +411,7 @@ export async function createGlobe(container, handlers = {}) {
     countries,
     paint,
     select,
+    setCompare,
     flyTo,
     introFlight,
     stopSpin,

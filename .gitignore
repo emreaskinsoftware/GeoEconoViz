@@ -2,3 +2,6 @@ __pycache__/
 .env
 node_modules/
 data/gostergeler.csv
+
+# Yerel geliştirme aracı ayarları
+.claude/
