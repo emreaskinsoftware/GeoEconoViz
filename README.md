@@ -26,6 +26,15 @@ kullanıyor, bunlar `file://` üzerinden yüklenmez. HTTP gerekiyor.
 Klasörü olduğu gibi GitHub Pages, Netlify, Vercel ya da herhangi bir statik
 barındırıcıya koymak yeterli. Derleme adımı ve ortam değişkeni yoktur.
 
+**GitHub Pages:** depo ayarlarında *Pages → Source: Deploy from a branch →
+`main` / `(root)`*. Başka bir şey gerekmiyor; `server.js` yalnızca yerel
+geliştirme içindir, yayında kullanılmaz.
+
+Alt yolda (`kullanici.github.io/GeoEconoViz/`) çalışması için tasarlandı:
+bütün varlıklar `./` ile göreli, yönlendirme `#` üzerinden. Bu ikincisi
+Pages'te önemli — sunucu tarafı yönlendirme kuralı yazılamadığı için gerçek
+yol tabanlı adresler 404 verirdi.
+
 ---
 
 ## Ne var içinde
