@@ -1,0 +1,106 @@
+/* ==========================================================================
+   GeoEconoViz — tasarım belirteçleri
+   Yön: gece nöbetindeki bir istatistik enstitüsünün alet paneli.
+   Gövde sabit ve sessiz kalır; ekrandaki tek doygun renk verinin kendisidir.
+   ========================================================================== */
+
+:root {
+  /* ---- Gövde: gece yarısı mavi-arduvaz. Nötr siyah değil, hafif mavi. ---- */
+  --ink-900: #070d18;   /* sayfa zemini */
+  --ink-850: #0b1322;
+  --ink-800: #101a2c;   /* panel yüzeyi */
+  --ink-750: #152138;
+  --ink-700: #1b2a44;   /* yükseltilmiş yüzey */
+  --ink-650: #21334f;
+  --ink-600: #2a3d5d;   /* kenarlık */
+  --ink-500: #3b527a;
+  --ink-400: #5b7099;   /* sönük metin, eksen */
+  --ink-300: #8094b6;
+  --ink-200: #adbfd9;   /* ikincil metin */
+  --ink-100: #d2ddef;
+  --ink-050: #edf3fc;   /* birincil metin */
+
+  /* ---- Pirinç: kadran vurgusu. Yalnızca seçim ve odak için, veri için asla. ---- */
+  --brass-300: #f6e29a;
+  --brass-400: #efd268;
+  --brass-500: #e0bb3b;
+  --brass-600: #b3922b;
+  --brass-a20: rgba(224, 187, 59, .2);
+  --brass-a40: rgba(224, 187, 59, .4);
+
+  /* ---- Veri rengi. Aktif göstergeye göre çalışma anında değişir. ---- */
+  --data-1: #08313a;
+  --data-2: #0e6b72;
+  --data-3: #1fa88e;
+  --data-4: #6fd68a;
+  --data-5: #d9f27e;
+  --data-key: #1fa88e;          /* rampanın okunaklı orta tonu */
+  --data-key-soft: rgba(31, 168, 142, .16);
+  --data-key-line: rgba(31, 168, 142, .42);
+
+  --no-data: #202d44;           /* veri yok dolgusu */
+
+  /* ---- Cam paneller ---- */
+  --glass: rgba(16, 26, 44, .72);
+  --glass-strong: rgba(11, 19, 34, .88);
+  --glass-line: rgba(122, 152, 196, .16);
+  --glass-blur: blur(20px) saturate(1.3);
+
+  /* ---- Tipografi: sözcükler ile ölçümler ayrı seslerle konuşur. ---- */
+  --face-word: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+  --face-num: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  --step--2: .688rem;
+  --step--1: .781rem;
+  --step-0:  .875rem;
+  --step-1:  1rem;
+  --step-2:  1.25rem;
+  --step-3:  1.625rem;
+  --step-4:  2.25rem;
+  --step-5:  clamp(2.5rem, 1.6rem + 3.4vw, 3.75rem);
+
+  --track-num: .08em;   /* mono etiketler açılır */
+  --track-word: -.015em;
+
+  /* ---- Boşluk: 4px tabanlı ---- */
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
+  --s5: 20px; --s6: 24px; --s7: 32px; --s8: 40px; --s9: 56px;
+
+  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-xl: 22px; --r-pill: 999px;
+
+  /* ---- Yükselti ---- */
+  --lift-1: 0 1px 2px rgba(0,0,0,.4);
+  --lift-2: 0 6px 18px -6px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4);
+  --lift-3: 0 24px 60px -18px rgba(0,0,0,.7), 0 2px 6px rgba(0,0,0,.45);
+
+  /* ---- Hareket ----
+     Yaylar Motion'ın linear() üretecinden. Belirtilen süre algısal süredir;
+     kardeş animasyonları yay süresine değil algısal süreye göre zamanla. */
+  --spring-soft: 750ms linear(0, .0558, .1873, .3513, .5183, .6698, .7963, .8944, .9652, 1.0119, 1.0392, 1.0518, 1.0541, 1.05, 1.0423, 1.0332, 1.0243, 1.0163, 1.0098, 1.0048, 1.0012, .999, .9977, 1, 1);
+  --spring-snap: 500ms linear(0, .1462, .4021, .6298, .7927, .8951, .9532, .9831, .9967, 1.0018, 1, 1.0026, 1.0019, 1.0012, 1.0007, 1, 1);
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --t-fast: 140ms;
+  --t-base: 240ms;
+  --t-slow: 420ms;
+  --t-tint: 620ms;      /* gösterge değişiminde renk geçişi */
+
+  --rail-w: 268px;
+  --rank-w: 300px;
+  --topbar-h: 56px;
+}
+
+/* Hareket azaltma tercihi: her şey anında, ama hiçbir şey kaybolmaz. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --spring-soft: 1ms linear;
+    --spring-snap: 1ms linear;
+    --t-fast: 1ms; --t-base: 1ms; --t-slow: 1ms; --t-tint: 1ms;
+  }
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

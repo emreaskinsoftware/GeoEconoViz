@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070d18">
+<title>GeoEconoViz — Dünya kalkınma göstergeleri küresi</title>
+<meta name="description" content="Dünya Bankası kalkınma göstergelerini 3B küre üzerinde yıl yıl gösteren etkileşimli atlas.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.worldbank.org" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.122/Build/Cesium/Widgets/widgets.css">
+<link rel="stylesheet" href="./app/css/tokens.css">
+<link rel="stylesheet" href="./app/css/base.css">
+<link rel="stylesheet" href="./app/css/shell.css">
+<link rel="stylesheet" href="./app/css/panels.css">
+<link rel="stylesheet" href="./app/css/responsive.css">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%231fa88e' stroke-width='2.5'/><ellipse cx='16' cy='16' rx='5.5' ry='13' fill='none' stroke='%231fa88e' stroke-width='2'/><path d='M3.6 11.5h24.8M3.6 20.5h24.8' stroke='%231fa88e' stroke-width='2'/></svg>">
+
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.122/Build/Cesium/Cesium.js" defer></script>
+</head>
+<body>
+
+<a class="skip-link" href="#indicator-list">Gösterge listesine geç</a>
+
+<!-- Simge kütüphanesi -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-globe" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="16" cy="16" r="13"/><ellipse cx="16" cy="16" rx="5.5" ry="13"/>
+    <path d="M3.6 11.5h24.8M3.6 20.5h24.8"/>
+  </symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>
+  </symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <path d="M6 6l12 12M18 6L6 18"/>
+  </symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M7.5 5h3.5v14H7.5zM13 5h3.5v14H13z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>
+  </symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <path d="M4 6h16M4 12h16M4 18h10"/>
+  </symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor" stroke="none"/>
+  </symbol>
+</defs></svg>
+
+<!-- Açılış perdesi -->
+<div class="boot" id="boot">
+  <div class="boot-inner">
+    <svg aria-hidden="true"><use href="#i-globe"/></svg>
+    <p class="boot-status" id="boot-status">Küre hazırlanıyor</p>
+    <div class="boot-bar"><i id="boot-bar"></i></div>
+  </div>
+</div>
+
+<!-- Küre -->
+<div id="globe"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <!-- ── Üst çubuk ── -->
+  <header class="topbar" data-enter="topbar">
+    <a class="wordmark" href="./" aria-label="GeoEconoViz ana sayfa">
+      <svg aria-hidden="true"><use href="#i-globe"/></svg>
+      <span class="wordmark-text">Geo<b>Econo</b>Viz</span>
+    </a>
+
+    <button type="button" class="panel-toggle" id="toggle-rail"
+            aria-expanded="false" aria-controls="rail" aria-label="Göstergeler">
+      <svg width="18" height="18" aria-hidden="true"><use href="#i-sliders"/></svg>
+    </button>
+
+    <div class="search" role="search">
+      <div class="search-field">
+        <svg width="16" height="16" aria-hidden="true"><use href="#i-search"/></svg>
+        <input type="search" id="search-input" placeholder="Ülke ara…  ( / )"
+               autocomplete="off" spellcheck="false"
+               role="combobox" aria-expanded="false" aria-autocomplete="list"
+               aria-controls="search-results" aria-label="Ülke ara">
+        <button type="button" class="search-clear" aria-label="Aramayı temizle">
+          <svg width="13" height="13" aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+      </div>
+      <ul class="search-results" id="search-results" role="listbox" data-open="false" aria-label="Arama sonuçları"></ul>
+    </div>
+
+    <div class="topbar-actions">
+      <button type="button" class="panel-toggle" id="toggle-rank"
+              aria-expanded="false" aria-controls="rank" aria-label="Sıralama">
+        <svg width="18" height="18" aria-hidden="true"><use href="#i-list"/></svg>
+      </button>
+      <button type="button" class="icon-btn" id="about-btn" aria-label="Veri kaynağı hakkında">
+        <svg width="18" height="18" aria-hidden="true"><use href="#i-info"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Sol ray: gösterge seçici ── -->
+  <aside class="rail pane" id="rail" data-enter="rail" aria-label="Gösterge seçimi">
+    <div class="rail-head">
+      <p class="eyebrow">Gösterge</p>
+      <h2 id="rail-title">Küreyi neye göre boyayalım?</h2>
+    </div>
+
+    <ul class="indicator-list scroll-slim" id="indicator-list" role="radiogroup" aria-labelledby="rail-title"></ul>
+
+    <div class="legend">
+      <div class="legend-head">
+        <p class="eyebrow">Ölçek</p>
+        <span class="legend-unit num"></span>
+      </div>
+      <div class="legend-ramp" role="img" aria-label="Renk ölçeği: soldan sağa artan değer"></div>
+      <div class="legend-scale num"></div>
+      <p class="legend-nodata"><i aria-hidden="true"></i> Veri yok</p>
+    </div>
+  </aside>
+
+  <!-- ── Zaman şeridi ── -->
+  <div class="timeline pane" id="timeline" data-enter="timeline">
+    <button type="button" class="play-btn" aria-label="Yılları oynat" aria-pressed="false">
+      <svg aria-hidden="true"><use href="#i-play"/></svg>
+    </button>
+
+    <div class="year-readout">
+      <p class="eyebrow">Yıl</p>
+      <span class="year-value">—</span>
+    </div>
+
+    <div class="scrub">
+      <div class="scrub-track" aria-hidden="true"></div>
+      <div class="scrub-fill" aria-hidden="true"></div>
+      <div class="scrub-ticks" aria-hidden="true"></div>
+      <input type="range" id="year-range" min="0" max="0" value="0" step="1"
+             aria-label="Yıl seçici" aria-valuetext="Yükleniyor">
+    </div>
+
+    <div class="coverage">
+      <p class="eyebrow">Kapsam</p>
+      <span class="coverage-value">—</span>
+    </div>
+  </div>
+
+  <!-- ── Sağ panel: sıralama ── -->
+  <aside class="rank pane" id="rank" data-enter="rank" aria-label="Ülke sıralaması">
+    <div class="rank-head">
+      <p class="eyebrow">Sıralama</p>
+      <h2 class="rank-subtitle">Yükleniyor…</h2>
+      <div class="rank-order" role="group" aria-label="Sıralama yönü">
+        <button type="button" data-order="desc" aria-pressed="true">En yüksek</button>
+        <button type="button" data-order="asc" aria-pressed="false">En düşük</button>
+      </div>
+    </div>
+    <ul class="rank-list scroll-slim"></ul>
+  </aside>
+
+</div>
+
+<div class="scrim" id="scrim" data-open="false"></div>
+
+<!-- ── Ülke dosyası ── -->
+<section class="dossier" id="dossier" data-open="false" aria-hidden="true"
+         role="dialog" aria-modal="false" aria-labelledby="dossier-name">
+  <header class="dossier-head">
+    <img class="dossier-flag" alt="" width="46" height="32">
+    <div class="dossier-id">
+      <h2 class="dossier-name" id="dossier-name"></h2>
+      <div class="dossier-meta"></div>
+    </div>
+    <button type="button" class="dossier-close" aria-label="Ülke dosyasını kapat">
+      <svg width="16" height="16" aria-hidden="true"><use href="#i-x"/></svg>
+    </button>
+  </header>
+
+  <div class="dossier-body scroll-slim">
+    <p class="eyebrow">Seçili yılın göstergeleri</p>
+    <div class="stat-grid"></div>
+
+    <section class="series">
+      <div class="series-head">
+        <h3 class="series-title"></h3>
+        <p class="eyebrow">Zaman serisi</p>
+      </div>
+      <div class="series-chart"></div>
+    </section>
+
+    <section class="summary">
+      <p class="eyebrow">Ülke hakkında</p>
+      <p class="summary-text"></p>
+    </section>
+  </div>
+</section>
+
+<!-- Küre ipucu. Bootstrap'in .tooltip sınıfıyla çakışmasın diye kendi adı var. -->
+<div class="geo-tip" id="geo-tip" data-open="false" aria-hidden="true">
+  <span class="geo-tip-name"></span>
+  <span class="geo-tip-value num"></span>
+</div>
+
+<noscript>
+  <p style="padding:2rem;max-width:60ch">
+    GeoEconoViz Dünya Bankası verisini tarayıcıda çizer, bu yüzden JavaScript gerekir.
+    Verinin kendisine <a href="https://data.worldbank.org">data.worldbank.org</a> adresinden
+    doğrudan ulaşabilirsiniz.
+  </p>
+</noscript>
+
+<script type="module" src="./app/js/app.js"></script>
+</body>
+</html>
