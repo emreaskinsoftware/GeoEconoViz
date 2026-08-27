@@ -296,26 +296,42 @@ export async function createGlobe(container, handlers = {}) {
      --------------------------------------------------------------------- */
 
   let spinning = false;
+  let held = false;             // ülke seçiliyken dönüş kendiliğinden başlamaz
   let idleTimer = null;
   let lastTick = 0;
-  const IDLE_DELAY = 4500;
-  const SPIN_RATE = 0.028;      // radyan / saniye
+  const IDLE_DELAY = 3500;
+  const SPIN_RATE = 0.055;      // radyan / saniye ≈ tam tur 114 saniye
 
-  scene.preRender.addEventListener((_, time) => {
+  scene.preRender.addEventListener(() => {
     if (!spinning) { lastTick = 0; return; }
-    const ms = Cesium.JulianDate.toDate(time).getTime();
-    if (lastTick) camera.rotate(Cesium.Cartesian3.UNIT_Z, -SPIN_RATE * (ms - lastTick) / 1000);
-    lastTick = ms;
+
+    // Duvar saati kullanılıyor. Önceki sürüm Cesium'un simülasyon saatini
+    // okuyordu; `shouldAnimate: false` olduğu için o saat hiç ilerlemiyor ve
+    // her karede geçen süre sıfır çıkıyordu — dönüş kodu vardı ama ölüydü.
+    const now = performance.now();
+    if (lastTick) {
+      // Sekme arka plandan dönünce küre birden fırlamasın
+      const dt = Math.min(100, now - lastTick);
+      camera.rotate(Cesium.Cartesian3.UNIT_Z, -SPIN_RATE * dt / 1000);
+    }
+    lastTick = now;
     scene.requestRender();
   });
 
-  function startSpin() { if (!reduceMotion) spinning = true; }
+  function startSpin() { if (!reduceMotion && !held) spinning = true; }
   function stopSpin() { spinning = false; lastTick = 0; }
 
   function noteInteraction() {
     stopSpin();
     clearTimeout(idleTimer);
-    idleTimer = setTimeout(startSpin, IDLE_DELAY);
+    if (!held) idleTimer = setTimeout(startSpin, IDLE_DELAY);
+  }
+
+  /** Bir ülke seçiliyken küre kendiliğinden dönüp ondan uzaklaşmasın. */
+  function holdSpin(on) {
+    held = Boolean(on);
+    if (held) { stopSpin(); clearTimeout(idleTimer); }
+    else noteInteraction();
   }
 
   for (const evt of ['pointerdown', 'wheel', 'touchstart', 'keydown']) {
@@ -375,6 +391,7 @@ export async function createGlobe(container, handlers = {}) {
     introFlight,
     stopSpin,
     startSpin,
+    holdSpin,
     noteInteraction,
     setRealistic,
     get realistic() { return Boolean(relief && relief.show); },

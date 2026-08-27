@@ -481,3 +481,55 @@
   color: var(--ink-1);
   font-variant-numeric: tabular-nums;
 }
+
+/* ==========================================================================
+   En çok değişen — sıralamanın gösteremediği bilgi
+   ========================================================================== */
+
+.shifts {
+  flex-shrink: 0;
+  margin-top: var(--s4);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--rule);
+}
+.shifts-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+.shifts-range { font-family: var(--face-num); font-size: var(--step--2); color: var(--ink-3); }
+.shifts-list { display: flex; flex-direction: column; gap: 1px; }
+.shifts-empty { margin: 0; font-size: var(--step--2); color: var(--ink-3); }
+
+.shift {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  width: 100%;
+  padding: var(--s1) var(--s2);
+  margin-inline: calc(var(--s2) * -1);
+  width: calc(100% + var(--s4));
+  border-radius: var(--r-sm);
+  text-align: left;
+  transition: background var(--t-fast);
+}
+.shift:hover { background: var(--paper-2); }
+.shift-arrow { flex-shrink: 0; font-size: 9px; line-height: 1; }
+/* Renk yönü değil, yönün anlamını taşır. */
+.shift[data-good="true"]    .shift-arrow { color: #2f6d4f; }
+.shift[data-good="false"]   .shift-arrow { color: #a8452f; }
+.shift[data-good="neutral"] .shift-arrow { color: var(--ink-3); }
+.shift-name {
+  flex: 1; min-width: 0;
+  font-size: var(--step--1);
+  color: var(--ink-1);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.shift-delta {
+  flex-shrink: 0;
+  font-size: var(--step--2);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}

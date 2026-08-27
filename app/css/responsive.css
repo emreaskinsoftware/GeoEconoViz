@@ -1,3 +1,5 @@
+.peek { display: none; }
+
 /* ==========================================================================
    Uyarlanabilir düzen
    Geniş ekranda üç sütun. Daraldıkça yan paneller çekmeceye dönüşür;
@@ -68,6 +70,42 @@
     transition: opacity var(--t-base), visibility var(--t-base);
   }
   .scrim[data-open="true"] { opacity: 1; visibility: visible; }
+
+  /* Seçili ülkenin özeti — kürenin alt kenarına yaslanır, plakayı kapatmaz */
+  .peek {
+    grid-area: globe;
+    align-self: end;
+    z-index: 12;
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    margin: var(--s3);
+    padding: var(--s2) var(--s3);
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-md);
+    box-shadow: var(--lift-3);
+    text-align: left;
+    animation: rise var(--t-base) var(--ease-out);
+    transition: background var(--t-fast);
+  }
+  .peek[hidden] { display: none; }
+  .peek:active { background: var(--paper-2); }
+  .peek-flag {
+    width: 26px; height: 18px;
+    object-fit: cover;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .peek-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .peek-name {
+    font-weight: 600;
+    font-size: var(--step-0);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .peek-value { font-size: var(--step--2); color: var(--ink-3); }
+  .peek-chevron { flex-shrink: 0; color: var(--ink-3); }
 }
 
 /* --- Telefon --- */
@@ -101,6 +139,18 @@
   .stat { padding: var(--s3); }
   .stat-value { font-size: var(--step-1); }
   .series-chart { height: 160px; }
+
+  /* Telefonda yandan gelen çekmece kürenin tamamını kapatıyordu; alttan gelen
+     bir tabaka olarak açılıyor, üstte küre görünür kalıyor. */
+  .rail, .rank {
+    top: auto;
+    left: var(--s2); right: var(--s2);
+    bottom: var(--s2);
+    width: auto;
+    height: min(56vh, 500px);
+    border-radius: var(--r-xl);
+    transform: translate3d(0, calc(100% + var(--s5)), 0);
+  }
 
   .geo-tip { display: none; }   /* dokunmatikte üzerine gelme yok */
   .toasts { left: var(--s3); right: var(--s3); bottom: var(--s3); transform: none; }

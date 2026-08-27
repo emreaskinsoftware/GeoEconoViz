@@ -37,10 +37,16 @@ barındırıcıya koymak yeterli. Derleme adımı ve ortam değişkeni yoktur.
 | **Yıl şeridi** | 1990'dan bugüne sürgü; oynat düğmesiyle otomatik ilerleme |
 | **Sıralama** | Yıl değiştikçe satırlar yeni yerlerine kayarak gidiyor |
 | **Ülke dosyası** | Dokuz göstergenin o yılki değeri, her birinin eğrisi, tam zaman serisi ve Vikipedi özeti. Sıralamayla aynı sütunda, sekmeli — küreyi hiçbir zaman kapatmaz |
+| **En çok değişen** | Seçili göstergede 1990'dan bu yana en çok yükselen ve gerileyen ülke; tıklayınca oraya uçuyor |
+| **Kendiliğinden dönüş** | Küre boştayken yavaşça dönüyor; dokunulunca duruyor, ülke seçiliyken dönmüyor |
 | **Bağlantı** | `#/gösterge/yıl/ülke` — açtığınız görünüm paylaşılabilir |
 
 Arazi dokusu Cesium'un kendi paketiyle gelen **Natural Earth II** kabartma ve
 batimetri döşemeleri; dış servis, anahtar ya da depoya eklenmiş görsel yok.
+
+Dar ekranda yan paneller alttan gelen tabakaya dönüşüyor ve bir ülke seçmek
+onları açmıyor: kürenin alt kenarında ince bir özet çubuğu beliriyor, ayrıntı
+isteyen ona dokunuyor. Böylece seçilen yer her zaman görünür kalıyor.
 
 Klavye: `/` aramaya odaklanır, ok tuşları gösterge listesinde dolaşır,
 `Esc` açık paneli kapatır. `prefers-reduced-motion` açıksa tüm animasyonlar
@@ -93,7 +99,8 @@ app/js/
   store.js              IndexedDB önbelleği
   scale.js              nicelik ölçeği ve renk ara değerleme
   globe.js              Cesium sarmalayıcı ve choropleth
-  ui/                   ray, zaman şeridi, sıralama, dosya, arama, grafik, bildirim
+  ui/                   ray, zaman şeridi, sıralama, dosya, arama, grafik,
+                        değişim bloğu, bildirim
 data/countries.geo.json ISO3 kodlu ülke sınırları
 scripts/                isteğe bağlı CSV dışa aktarma
 ```

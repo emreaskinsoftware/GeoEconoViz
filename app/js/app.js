@@ -16,6 +16,7 @@ import { createTimeline } from './ui/timeline.js';
 import { createRanking } from './ui/ranking.js';
 import { createDossier } from './ui/dossier.js';
 import { createSearch } from './ui/search.js';
+import { createShifts } from './ui/shifts.js';
 import { toast } from './ui/toast.js';
 
 /* ==========================================================================
@@ -35,9 +36,11 @@ let globe = null;
 let rail = null;
 let timeline = null;
 let ranking = null;
+let shifts = null;
 let dossier = null;
 let panelTabs = null;
 let drawers = null;
+let peek = null;
 
 const boot = document.getElementById('boot');
 const bootStatus = document.getElementById('boot-status');
@@ -53,6 +56,9 @@ function progress(text, ratio) {
    ========================================================================== */
 
 const indicator = () => BY_ID[state.indicatorId];
+
+/** "En çok değişen" bloğunun baktığı başlangıç yılı. */
+const SHIFT_SINCE = 1990;
 
 /** Etkin gösterge + yıl için ülke değerleri. */
 function entriesFor(indicatorId, year) {
@@ -122,9 +128,22 @@ function render({ repaintGlobe = true, paintDuration = 520 } = {}) {
     scale,
   });
 
-  writeHash();
+  shifts.update({
+    indicator: ind,
+    year: state.year,
+    since: SHIFT_SINCE,
+    countries: state.countries,
+    seriesFor: (iso3) => seriesFor(iso3, state.indicatorId),
+    pool: entries.map((e) => e.iso3),
+  });
+
   lastScale = scale;
   lastValues = valueOf;
+
+  // Özet çubuğu etkin göstergeyi yazıyor; gösterge ya da yıl değişince tazelenir
+  if (state.iso3 && peek?.shown) peek.update(peekText(state.iso3));
+
+  writeHash();
 }
 
 let lastScale = quantileScale([]);
@@ -175,6 +194,7 @@ function selectCountry(iso3, { fly = true } = {}) {
 
   state.iso3 = iso3;
   globe?.select(iso3);
+  globe?.holdSpin(true);      // seçili ülkeden uzaklaşmasın
   ranking.select(iso3);
 
   if (fly && Number.isFinite(country.lon) && Number.isFinite(country.lat)) {
@@ -191,10 +211,19 @@ function selectCountry(iso3, { fly = true } = {}) {
 
   panelTabs.enable(country.name);
   panelTabs.show('dossier');
-  // Dar ekranda sağ sütun bir çekmece; veriyi göstermek için açılması gerekiyor
-  if (drawers.isDrawer) drawers.openRank();
+  // Dar ekranda çekmeceyi açmıyoruz: küre kapanmasın diye önce özet çubuğu
+  if (drawers.isDrawer) peek.show(country, peekText(iso3));
 
   writeHash();
+}
+
+/** Özet çubuğunda yazan satır: etkin göstergenin o ülkedeki değeri. */
+function peekText(iso3) {
+  const ind = indicator();
+  const value = lastValues.get(iso3);
+  return Number.isFinite(value)
+    ? `${ind.name} · ${ind.format(value)}`
+    : `${ind.name} · veri yok`;
 }
 
 function refreshDossier() {
@@ -211,10 +240,12 @@ function refreshDossier() {
 function clearCountry() {
   state.iso3 = null;
   globe?.select(null);
+  globe?.holdSpin(false);
   ranking.select(null, { scroll: false });
   dossier.close();
   panelTabs.show('rank');
   panelTabs.disable();
+  peek?.hide();
   writeHash();
 }
 
@@ -286,14 +317,14 @@ function showTip(iso3, position) {
    Dar ekran çekmeceleri
    ========================================================================== */
 
-function wireDrawers() {
+function wireDrawers({ onClose } = {}) {
   const scrim = document.getElementById('scrim');
   const panels = [
     [document.getElementById('toggle-rail'), document.getElementById('rail')],
     [document.getElementById('toggle-rank'), document.getElementById('rank')],
   ];
 
-  const closeAll = () => {
+  const reset = () => {
     for (const [btn, panel] of panels) {
       panel.dataset.open = 'false';
       btn.setAttribute('aria-expanded', 'false');
@@ -301,8 +332,12 @@ function wireDrawers() {
     scrim.dataset.open = 'false';
   };
 
+  // Geri çağrı yalnızca gerçek kapanışta; open() içindeki sıfırlamada değil,
+  // yoksa çekmeceyi açar açmaz özet çubuğu geri gelirdi.
+  const closeAll = () => { reset(); onClose?.(); };
+
   const open = (which) => {
-    closeAll();
+    reset();
     const [btn, panel] = panels[which];
     panel.dataset.open = 'true';
     btn.setAttribute('aria-expanded', 'true');
@@ -325,6 +360,40 @@ function wireDrawers() {
     closeAll,
     openRank: () => open(1),
     get isDrawer() { return drawerMode.matches; },
+  };
+}
+
+/**
+ * Dar ekran özet çubuğu.
+ *
+ * Telefonda ve tablette sağ sütun bir çekmece. Seçim onu doğrudan açsaydı küre
+ * yine tamamen kapanırdı — asıl şikâyet buydu. Bunun yerine kürenin alt kenarına
+ * ince bir çubuk geliyor: ülke seçili, değeri okunuyor, küre görünür kalıyor.
+ * Ayrıntı isteyen çubuğa dokunuyor.
+ */
+function createPeek({ onOpen }) {
+  const el = document.getElementById('peek');
+  const flag = el.querySelector('.peek-flag');
+  const name = el.querySelector('.peek-name');
+  const value = el.querySelector('.peek-value');
+
+  el.addEventListener('click', onOpen);
+
+  return {
+    show(country, text) {
+      if (country.iso2) {
+        flag.src = `https://flagcdn.com/w40/${country.iso2.toLowerCase()}.png`;
+        flag.hidden = false;
+      } else {
+        flag.hidden = true;
+      }
+      name.textContent = country.name;
+      value.textContent = text;
+      el.hidden = false;
+    },
+    update(text) { value.textContent = text; },
+    hide() { el.hidden = true; },
+    get shown() { return !el.hidden; },
   };
 }
 
@@ -412,8 +481,22 @@ async function main() {
   );
 
   /* --- 3. Arayüzü kur --- */
-  drawers = wireDrawers();
+  drawers = wireDrawers({
+    onClose: () => {
+      // Çekmece kapanınca, seçili ülke duruyorsa özet çubuğu geri gelir
+      if (state.iso3 && drawers?.isDrawer) {
+        peek.show(state.countries.get(state.iso3), peekText(state.iso3));
+      }
+    },
+  });
   panelTabs = createPanelTabs();
+  peek = createPeek({
+    onOpen: () => {
+      peek.hide();
+      panelTabs.show('dossier');
+      drawers.openRank();
+    },
+  });
 
   rail = createRail(document.getElementById('rail'), {
     onChange: (id) => selectIndicator(id),
@@ -429,10 +512,14 @@ async function main() {
     onClose: () => {
       state.iso3 = null;
       globe?.select(null);
+      globe?.holdSpin(false);
       ranking.select(null, { scroll: false });
       panelTabs.show('rank');
       panelTabs.disable();
     },
+  });
+  shifts = createShifts(document.getElementById('rail'), {
+    onPick: (iso3) => selectCountry(iso3),
   });
   createSearch(document.querySelector('.search'), {
     countries: state.countries,

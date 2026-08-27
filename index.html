@@ -50,6 +50,9 @@
   <symbol id="i-relief" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
     <path d="M2 18.5h20"/><path d="m4 18.5 5.5-9 3.2 5 2.3-3.6 5 7.6z"/><circle cx="17.5" cy="6" r="2"/>
   </symbol>
+  <symbol id="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m6 15 6-6 6 6"/>
+  </symbol>
   <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
     <circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor" stroke="none"/>
   </symbol>
@@ -129,6 +132,14 @@
       </div>
       <div class="legend-scale num"></div>
       <p class="legend-nodata"><i aria-hidden="true"></i> Veri yok</p>
+    </div>
+
+    <div class="shifts">
+      <div class="shifts-head">
+        <p class="eyebrow">En çok değişen</p>
+        <span class="shifts-range num"></span>
+      </div>
+      <div class="shifts-list"></div>
     </div>
   </aside>
 
@@ -212,6 +223,20 @@
       </div>
     </section>
   </aside>
+
+
+  <!-- ── Dar ekran özet çubuğu ──
+       Telefonda ve tablette sağ sütun bir çekmece; seçim onu otomatik açsaydı
+       küre yine kapanırdı. Bunun yerine kürenin alt kenarında bu çubuk beliriyor,
+       dokununca dosya açılıyor. -->
+  <button type="button" class="peek" id="peek" hidden aria-controls="rank">
+    <img class="peek-flag" alt="">
+    <span class="peek-body">
+      <span class="peek-name"></span>
+      <span class="peek-value num"></span>
+    </span>
+    <svg class="peek-chevron" width="16" height="16" aria-hidden="true"><use href="#i-up"/></svg>
+  </button>
 
 </div>
 
