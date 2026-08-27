@@ -36,7 +36,7 @@ export function createDossier(root, { onIndicatorPick, onClose }) {
   function metaItem(label, value) {
     const span = document.createElement('span');
     const strong = document.createElement('span');
-    strong.className = 'eyebrow';
+    strong.className = 'meta-label';
     strong.textContent = label;
     const text = document.createElement('span');
     text.textContent = value;

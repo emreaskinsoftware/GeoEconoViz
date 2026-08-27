@@ -11,8 +11,8 @@ html, body {
 }
 
 body {
-  background: var(--ink-900);
-  color: var(--ink-050);
+  background: var(--paper);
+  color: var(--ink-1);
   font-family: var(--face-word);
   font-size: var(--step-0);
   font-weight: 400;
@@ -23,27 +23,42 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Ölçüm sesi: mono, açılmış, hizalı rakamlar */
+/* Ölçüm sesi: mono, hizalı rakamlar */
 .num {
   font-family: var(--face-num);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
 
+/* Bölüm etiketi.
+   Önceki sürümde bunlar büyük harf + geniş harf aralıklı mono idi; 12 puntoda
+   okumayı zorlaştıran asıl birleşim buydu. Artık normal yazım ve koyu mürekkep,
+   ayrımı da soldaki kısa çizgi taşıyor. */
 .eyebrow {
-  font-family: var(--face-num);
-  font-size: var(--step--2);
-  font-weight: 500;
-  letter-spacing: var(--track-num);
-  text-transform: uppercase;
-  color: var(--ink-400);
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: 0;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  color: var(--ink-3);
+}
+.eyebrow::before {
+  content: '';
+  width: 14px;
+  height: 2px;
+  background: var(--data-key);
+  flex-shrink: 0;
+  transition: background var(--t-tint) var(--ease-out);
 }
 
 h1, h2, h3, h4 {
   margin: 0;
   font-weight: 600;
   letter-spacing: var(--track-word);
-  line-height: 1.18;
+  line-height: 1.2;
+  color: var(--ink-1);
 }
 
 button, input, select {
@@ -63,7 +78,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 /* Klavye odağı her zaman görünür — fare odağı asla halka çizmez */
 :focus { outline: none; }
 :focus-visible {
-  outline: 2px solid var(--brass-400);
+  outline: 2px solid var(--ink-1);
   outline-offset: 2px;
   border-radius: var(--r-sm);
 }
@@ -86,8 +101,8 @@ button:disabled { cursor: not-allowed; opacity: .45; }
   left: var(--s2);
   z-index: 999;
   padding: var(--s2) var(--s4);
-  background: var(--brass-500);
-  color: var(--ink-900);
+  background: var(--ink-1);
+  color: var(--paper);
   border-radius: var(--r-sm);
   font-weight: 600;
   transform: translateY(-200%);
@@ -96,32 +111,30 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .skip-link:focus-visible { transform: translateY(0); }
 
 /* --- Kaydırma çubukları: ince, sessiz, her panelde aynı --- */
-.scroll-slim { scrollbar-width: thin; scrollbar-color: var(--ink-600) transparent; }
-.scroll-slim::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-slim { scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
+.scroll-slim::-webkit-scrollbar { width: 9px; height: 9px; }
 .scroll-slim::-webkit-scrollbar-track { background: transparent; }
 .scroll-slim::-webkit-scrollbar-thumb {
-  background: var(--ink-600);
+  background: var(--rule);
   border-radius: var(--r-pill);
-  border: 2px solid transparent;
+  border: 3px solid transparent;
   background-clip: content-box;
 }
-.scroll-slim::-webkit-scrollbar-thumb:hover { background: var(--ink-500); background-clip: content-box; }
+.scroll-slim::-webkit-scrollbar-thumb:hover { background: var(--ink-3); background-clip: content-box; }
 
-/* --- Cam panel ilkeli --- */
+/* --- Panel ilkeli: kağıt üzerinde kart, ince çizgi, çok hafif gölge --- */
 .pane {
-  background: var(--glass);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-line);
+  background: var(--card);
+  border: 1px solid var(--rule);
   border-radius: var(--r-lg);
-  box-shadow: var(--lift-2);
+  box-shadow: var(--lift-1);
 }
 
 /* --- İskelet yükleme: veri gelene kadar düzen yerinde durur --- */
 .skeleton {
   position: relative;
   overflow: hidden;
-  background: var(--ink-750);
+  background: var(--paper-2);
   border-radius: var(--r-sm);
   color: transparent !important;
 }
@@ -130,29 +143,30 @@ button:disabled { cursor: not-allowed; opacity: .45; }
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(173, 191, 217, .09), transparent);
+  background: linear-gradient(90deg, transparent, rgba(27, 33, 25, .06), transparent);
   animation: shimmer 1.4s ease-in-out infinite;
 }
 @keyframes shimmer { to { transform: translateX(100%); } }
 
 /* --- Giriş hareketleri --- */
 @keyframes rise {
-  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes slide-in-left {
-  from { opacity: 0; transform: translate3d(-18px, 0, 0); }
+  from { opacity: 0; transform: translate3d(-16px, 0, 0); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes slide-in-right {
-  from { opacity: 0; transform: translate3d(18px, 0, 0); }
+  from { opacity: 0; transform: translate3d(16px, 0, 0); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
-/* Sayfa yükleme sırası: parçalar sırayla değil, kademeli olarak gelir */
+/* Sayfa yükleme sırası: parçalar kademeli olarak gelir */
 [data-enter] { opacity: 0; animation: rise var(--t-slow) var(--ease-out) forwards; }
 [data-enter='rail']     { animation-name: slide-in-left;  animation-delay: 120ms; }
 [data-enter='rank']     { animation-name: slide-in-right; animation-delay: 220ms; }
 [data-enter='timeline'] { animation-delay: 320ms; }
 [data-enter='topbar']   { animation-name: fade; animation-delay: 60ms; }
+[data-enter='globe']    { animation-name: fade; animation-delay: 40ms; }

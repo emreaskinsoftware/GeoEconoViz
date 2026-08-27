@@ -1,10 +1,12 @@
 /**
  * Cesium küresi.
  *
- * Uydu görüntüsü katmanı yok: bu yüzden Cesium Ion anahtarı, aylık kota ve
- * döşeme trafiği de yok. Küre düz koyu bir okyanus, ülkeler ise yerel GeoJSON'dan
- * çizilip seçili göstergeye göre boyanan çokgenler. Görsel olarak bir veri
- * küresi zaten böyle görünmeli.
+ * Küre artık sayfanın arkasında değil, ızgaranın ortasında sınırlı bir plaka:
+ * basılı bir atlastaki şekil penceresi gibi. Çevresi uzay (koyu plaka), içi
+ * gölgeli kabartma haritası, üstü de göstergeye göre boyanmış ülkeler.
+ *
+ * Uydu görüntüsü katmanı için Cesium Ion anahtarı gerekmiyor: kabartma dokusu
+ * Cesium'un kendi paketiyle geliyor.
  *
  * Ülke bulma işi tamamen GPU'ya bırakıldı (scene.pick). Projenin ilk hâli her
  * fare hareketinde 180 çokgende ışın atma yapıyor ve küre takılıyordu.
@@ -15,9 +17,10 @@ const GEOJSON_URL = './data/countries.geo.json';
 /** GeoJSON kimliği ile Dünya Bankası kodunun ayrıldığı tek yer. */
 const ISO_ALIAS = { 'CS-KM': 'XKX' };
 
-const OCEAN = '#0a1526';
-const BORDER = 'rgba(140,170,210,0.30)';
-const NO_DATA = '#202d44';
+const PLATE = '#101410';        // kürenin çevresi: uzay
+const OCEAN_FLAT = '#ccd6d9';   // kabartma kapalıyken kağıt haritası okyanusu
+const BORDER = 'rgba(27, 33, 25, 0.45)';
+const NO_DATA = '#b9beb3';
 
 /** Çokgenler yüzeyden bu kadar yükseğe çizilir; küre ölçeğinde görünmez ama
  *  derinlik çakışmasını (z-fighting) tamamen bitirir. */
@@ -27,12 +30,12 @@ export async function createGlobe(container, handlers = {}) {
   const Cesium = window.Cesium;
   if (!Cesium) throw new Error('CesiumJS yüklenemedi');
 
-  // Ion varlığı istemiyoruz; yine de kütüphanenin yerleşik jetonunu boşaltıyoruz
+  // Ion varlığı istemiyoruz; kütüphanenin yerleşik jetonunu boşaltıyoruz
   // ki kazara bir istek çıkmasın.
   Cesium.Ion.defaultAccessToken = '';
 
   const viewer = new Cesium.Viewer(container, {
-    baseLayer: false,                 // görüntü katmanı yok -> anahtar gerekmez
+    baseLayer: false,
     baseLayerPicker: false,
     terrainProvider: new Cesium.EllipsoidTerrainProvider(),
     geocoder: false,                  // Ion geocoder'ı kapat
@@ -45,16 +48,20 @@ export async function createGlobe(container, handlers = {}) {
     infoBox: false,
     selectionIndicator: false,
     shouldAnimate: false,
-    contextOptions: { webgl: { alpha: false, powerPreference: 'high-performance' } },
+    // Cesium varsayılanı yüksek yoğunluklu ekranlarda 1x çizer; küre sınırlı bir
+    // plaka içinde olduğu için tam çözünürlük ucuz ve sınırlar belirgin çıkıyor.
+    useBrowserRecommendedResolution: false,
+    contextOptions: { webgl: { powerPreference: 'high-performance' } },
   });
 
   const { scene, camera } = viewer;
-  scene.globe.baseColor = Cesium.Color.fromCssColorString(OCEAN);
+  scene.backgroundColor = Cesium.Color.fromCssColorString(PLATE);
+  scene.globe.baseColor = Cesium.Color.fromCssColorString(OCEAN_FLAT);
   scene.globe.showGroundAtmosphere = true;
   scene.globe.enableLighting = false;      // gece yarısı yarımküresi okunmuyordu
-  scene.skyAtmosphere.hueShift = -0.06;
-  scene.skyAtmosphere.saturationShift = 0.1;
-  scene.skyAtmosphere.brightnessShift = -0.1;
+  scene.skyBox.show = false;               // basılı şekilde yıldız alanı olmaz
+  scene.skyAtmosphere.brightnessShift = -0.15;
+  scene.skyAtmosphere.saturationShift = -0.3;
   scene.fog.enabled = false;
   scene.highDynamicRange = false;
   scene.screenSpaceCameraController.enableTilt = false;   // küre hep dik dursun
@@ -68,13 +75,11 @@ export async function createGlobe(container, handlers = {}) {
      Kabartma dokusu
 
      Cesium her sürümünde Natural Earth II kabartma ve batimetri döşemelerini
-     kendi paketiyle birlikte getiriyor. Yani gerçek kıtalar, çöller, buzullar
-     ve okyanus derinliği için Ion anahtarına, dış servise ya da depoya
-     eklenecek bir görsele gerek yok — Cesium'un yüklendiği yerden geliyor.
+     kendi paketiyle getiriyor: gerçek kıtalar, çöller, buzullar, okyanus
+     derinliği. Ion anahtarı, dış servis ya da depoya eklenecek görsel yok.
 
-     Ülke çokgenleri bunun üzerine yarı saydam biniyor: renk okunaklı kalıyor,
-     altındaki arazi dokusu görünüyor. Veri odaklı düz görünüm isteyen için
-     katman kapatılabiliyor.
+     Doygunluk düşürülüp parlaklık yükseltiliyor: basılı atlaslardaki gölgeli
+     kabartma zemini gibi geride dursun, mürekkep öne çıksın.
      --------------------------------------------------------------------- */
 
   let relief = null;
@@ -83,25 +88,34 @@ export async function createGlobe(container, handlers = {}) {
       Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
     );
     relief = new Cesium.ImageryLayer(provider);
-    // Arazi geri planda dursun, veri öne çıksın
-    relief.brightness = 0.62;
-    relief.saturation = 0.55;
-    relief.contrast = 1.08;
+    relief.brightness = 1.12;
+    relief.saturation = 0.34;
+    relief.contrast = 1.04;
     viewer.imageryLayers.add(relief);
   } catch {
-    relief = null;     // doku alınamazsa küre düz koyu kalır, uygulama çalışır
+    relief = null;     // doku alınamazsa küre düz kalır, uygulama çalışır
   }
+
+  /* ---------------------------------------------------------------------
+     Kapsayıcı boyutu
+
+     Cesium yalnızca pencere yeniden boyutlanınca kendini ölçüyor. Küre artık
+     ızgara içinde sınırlı bir kutu olduğu için (çekmece açılması, panel
+     genişliği değişmesi) pencere değişmeden de boyutu değişebiliyor.
+     --------------------------------------------------------------------- */
+
+  const ro = new ResizeObserver(() => viewer.resize());
+  ro.observe(container);
 
   /* ---------------------------------------------------------------------
      Ülke çokgenleri
      --------------------------------------------------------------------- */
 
-  const source = await Cesium.GeoJsonDataSource.load(GEOJSON_URL, {
-    clampToGround: false,
-  });
+  const source = await Cesium.GeoJsonDataSource.load(GEOJSON_URL, { clampToGround: false });
   viewer.dataSources.add(source);
 
   const borderColor = Cesium.Color.fromCssColorString(BORDER);
+  const selectedColor = Cesium.Color.fromCssColorString('#0d100c');
   const noData = Cesium.Color.fromCssColorString(NO_DATA);
 
   /** ISO3 -> { entities: [...], name } */
@@ -136,19 +150,26 @@ export async function createGlobe(container, handlers = {}) {
   }
 
   /* ---------------------------------------------------------------------
-     Boyama — eski renkten yeni renge yumuşak geçiş
+     Boyama
      --------------------------------------------------------------------- */
 
   const target = new Map();       // iso3 -> Cesium.Color (hedef)
   let tween = null;
   let lastColorFor = null;        // katman açılıp kapanınca yeniden boyamak için
+  let selected = null;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* Kabartma açıkken çokgenler saydamlaşır ki arazi görünsün; kapalıyken
-     tam opak olurlar, çünkü altta okunacak bir şey kalmaz. */
-  const dataAlpha = () => (relief && relief.show ? 0.82 : 1);
-  const nullAlpha = () => (relief && relief.show ? 0.3 : 1);
+     tam opak olurlar, çünkü altta okunacak bir şey kalmaz.
+
+     Seçili ülke her hâlükârda tam opak: Cesium'un çizgi kalınlığı çoğu
+     platformda 1 pikselle sınırlı olduğu için seçimi asıl belli eden şey
+     kenarlık değil, komşularından ayrışan doluluk. */
+  const dataAlpha = (iso3) =>
+    iso3 === selected ? 1 : (relief && relief.show ? 0.78 : 1);
+  const nullAlpha = (iso3) =>
+    iso3 === selected ? 0.9 : (relief && relief.show ? 0.25 : 1);
 
   /**
    * @param {(iso3: string) => string|null} colorFor css rengi ya da veri yoksa null
@@ -159,7 +180,7 @@ export async function createGlobe(container, handlers = {}) {
     for (const [iso3] of countries) {
       const css = colorFor(iso3);
       const color = css ? Cesium.Color.fromCssColorString(css) : Cesium.Color.clone(noData);
-      color.alpha = css ? dataAlpha() : nullAlpha();
+      color.alpha = css ? dataAlpha(iso3) : nullAlpha(iso3);
       target.set(iso3, color);
     }
 
@@ -178,7 +199,6 @@ export async function createGlobe(container, handlers = {}) {
       return;
     }
 
-    // Başlangıç renklerini sakla
     const from = new Map();
     for (const [iso3, record] of countries) {
       from.set(iso3, Cesium.Color.clone(record.entities[0]._tint, new Cesium.Color()));
@@ -206,11 +226,8 @@ export async function createGlobe(container, handlers = {}) {
   }
 
   /* ---------------------------------------------------------------------
-     Seçim vurgusu
+     Seçim
      --------------------------------------------------------------------- */
-
-  const selectedColor = Cesium.Color.fromCssColorString('#e0bb3b');
-  let selected = null;
 
   function setOutline(iso3, color, width) {
     const record = countries.get(iso3);
@@ -221,11 +238,23 @@ export async function createGlobe(container, handlers = {}) {
     }
   }
 
+  /** Tek bir ülkenin saydamlığını yeniden hesapla (tüm küreyi boyamadan). */
+  function refreshAlpha(iso3) {
+    const record = countries.get(iso3);
+    if (!record || !lastColorFor) return;
+    const css = lastColorFor(iso3);
+    for (const e of record.entities) {
+      e._tint.alpha = css ? dataAlpha(iso3) : nullAlpha(iso3);
+    }
+  }
+
   function select(iso3) {
     if (selected === iso3) return;
-    if (selected) setOutline(selected, borderColor, 1);
+    const previous = selected;
     selected = iso3;
-    if (iso3) setOutline(iso3, selectedColor, 2);
+
+    if (previous) { setOutline(previous, borderColor, 1); refreshAlpha(previous); }
+    if (iso3) { setOutline(iso3, selectedColor, 2); refreshAlpha(iso3); }
     scene.requestRender();
   }
 
@@ -314,11 +343,11 @@ export async function createGlobe(container, handlers = {}) {
       startSpin();
       return Promise.resolve();
     }
-    camera.setView({ destination: Cesium.Cartesian3.fromDegrees(20, 25, 6.4e7) });
+    camera.setView({ destination: Cesium.Cartesian3.fromDegrees(20, 25, 5.6e7) });
     return new Promise((resolve) => {
       camera.flyTo({
         destination: Cesium.Cartesian3.fromDegrees(20, 25, 2.0e7),
-        duration: 2.2,
+        duration: 2.0,
         easingFunction: Cesium.EasingFunction.QUADRATIC_OUT,
         complete: () => { startSpin(); resolve(); },
       });
@@ -326,16 +355,13 @@ export async function createGlobe(container, handlers = {}) {
   }
 
   /**
-   * Kabartma dokusunu aç/kapat. Açıkken küre gerçek bir Dünya gibi görünür,
-   * kapalıyken renkler tam doygunlukta okunur.
+   * Kabartma dokusunu aç/kapat.
    * @returns {boolean} yeni durum
    */
   function setRealistic(on) {
     if (!relief) return false;
     relief.show = Boolean(on);
-    scene.globe.baseColor = Cesium.Color.fromCssColorString(on ? '#000000' : OCEAN);
-    // Saydamlık değiştiği için mevcut renkleri yeniden uygula
-    if (lastColorFor) paint(lastColorFor, 260);
+    if (lastColorFor) paint(lastColorFor, 260);   // saydamlık değişti
     scene.requestRender();
     return relief.show;
   }
@@ -346,14 +372,15 @@ export async function createGlobe(container, handlers = {}) {
     paint,
     select,
     flyTo,
-    setRealistic,
-    get realistic() { return Boolean(relief && relief.show); },
-    get hasRelief() { return Boolean(relief); },
     introFlight,
     stopSpin,
     startSpin,
     noteInteraction,
+    setRealistic,
+    get realistic() { return Boolean(relief && relief.show); },
+    get hasRelief() { return Boolean(relief); },
     /** Kürede çokgeni olan ülkeler — sıralamanın kürede karşılığı olsun diye. */
     hasPolygon: (iso3) => countries.has(iso3),
+    destroy() { ro.disconnect(); handler.destroy(); viewer.destroy(); },
   };
 }

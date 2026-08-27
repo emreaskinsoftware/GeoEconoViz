@@ -105,30 +105,36 @@ lejant, sıralama ve dosya bu üçünden türetiliyor.
 
 ## Tasarım
 
-Yön: gece nöbetindeki bir istatistik enstitüsünün alet paneli. Gövde sabit
-lacivert-arduvaz kalıyor; **ekrandaki tek doygun renk verinin kendisi.**
+Yön: **basılı istatistik atlası.** Soğuk harita kağıdı zemin, matbaa mürekkebi,
+ince çizgiler. Küre sayfanın ortasında koyu bir baskı plakası içinde oturur —
+tıpkı basılı bir atlastaki şekil penceresi gibi.
 
-Bu yüzden gösterge değiştiğinde küre, lejant, sıralama çubukları, grafik çizgisi
-ve odak halkaları birlikte renk değiştiriyor. Üç rampa var ve hangisinin
-kullanılacağını göstergenin anlamı belirliyor:
+Cam, bulanıklık ve neon geçiş yok. Bunun bir okunurluk gerekçesi var: metin
+hareket eden bir kürenin üzerinde yarı saydam bir panelde durduğunda arka plan
+sabit olmuyor ve kontrast sürekli oynuyordu. Artık her yazı düz ve durağan bir
+zemin üzerinde; ikincil metinler beyaz kart üzerinde 6,56:1 veriyor
+(WCAG AA eşiği 4,5).
+
+Gösterge değiştiğinde lejant, sıralama çubukları, grafik çizgisi ve seçim
+işaretleri birlikte renk değiştiriyor. Üç rampa var, hangisinin kullanılacağını
+göstergenin anlamı belirliyor:
 
 | Rampa | Kullanan göstergeler | Renk |
 |---|---|---|
-| Refah | gelir, yaşam süresi, sağlık, okullaşma | derin deniz yeşili → limon |
-| Risk | enflasyon, işsizlik, bebek ölümü, intihar | mürdüm → kehribar |
-| Yansız | doğum hızı | çividi → orkide |
+| Refah | gelir, yaşam süresi, sağlık, okullaşma | kağıt yeşili → koyu çam |
+| Risk | enflasyon, işsizlik, bebek ölümü, intihar | açık kum → yanık kızıl |
+| Yansız | doğum hızı | açık leylak → gece moru |
 
-Rampanın sıcak ucu her zaman yüksek değeri gösterir; "yüksek olması kötü"
-göstergeler risk rampasını aldığı için sıcak uç kendiliğinden uyarı rengi olur.
+Matbaa mantığı: **açık = düşük, koyu = yüksek.** Basılı atlaslarda okuma yönü
+budur ve ayrımı doygunluk değil koyuluk taşıdığı için hiçbir gösterge "uyarı
+ışığı" gibi görünmez.
 
 Renk, değerin kendisine değil o yılki **sıra yüzdesine** bağlanıyor. Kişi başına
 gelir gibi ağır çarpık göstergelerde doğrusal ölçek kullanılsa dünyanın neredeyse
-tamamı rampanın en soğuk ucunda toplanır ve harita hiçbir şey anlatmaz.
+tamamı rampanın bir ucunda toplanır ve harita hiçbir şey anlatmaz.
 
 Yazı: **Archivo** sözcükler için, **IBM Plex Mono** ölçümler için. Bu ayrım
 tesadüfi değil — bir atlasın yaptığı da tam olarak düzyazı ile veriyi ayırmaktır.
-
----
 
 ## Sürüm 2 neyi değiştirdi
 

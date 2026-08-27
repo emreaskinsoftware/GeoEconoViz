@@ -13,21 +13,29 @@
  * sıcak uç kendiliğinden uyarı rengi olur.
  */
 
+/**
+ * Renk rampaları — matbaa mürekkebi mantığı: açık = düşük, koyu = yüksek.
+ * Basılı atlaslarda okuma yönü budur ve doygunluk değil koyuluk taşıdığı için
+ * dokuz göstergenin hiçbiri "uyarı ışığı" gibi görünmez.
+ *
+ * `key`, arayüzün vurgu rengi olarak kullanılan koyu ton; beyaz kart üzerinde
+ * üçü de en az 5,9:1 kontrast veriyor.
+ */
 export const RAMPS = {
-  // Refah: derin deniz yeşilinden ışıklı limona
+  // Refah: kağıt yeşilinden koyu çam mürekkebine
   prosperity: {
-    stops: ['#08313a', '#0e6b72', '#1fa88e', '#6fd68a', '#d9f27e'],
-    key: '#1fa88e',
+    stops: ['#e8ede4', '#b0c6b2', '#7fa98f', '#2f5d50', '#14332c'],
+    key: '#2f5d50',
   },
-  // Risk: mürdüm eriğinden közlenmiş kehribara
+  // Risk: açık kumdan yanık kızıla
   risk: {
-    stops: ['#2b1035', '#6b1548', '#b32b4c', '#e3663c', '#f7c24b'],
-    key: '#e3663c',
+    stops: ['#f7e9dc', '#e0ab7f', '#c9713f', '#a8452f', '#5c1d16'],
+    key: '#a8452f',
   },
-  // Yansız: gece çividisinden orkideye — "iyi/kötü" yargısı taşımaz
+  // Yansız: açık leylaktan gece moruna — "iyi/kötü" yargısı taşımaz
   neutral: {
-    stops: ['#101c3d', '#33409e', '#6e5bc6', '#a87fd6', '#e3b7e0'],
-    key: '#6e5bc6',
+    stops: ['#edeaf2', '#c3b8d8', '#a99bc4', '#5f4e8c', '#2e2450'],
+    key: '#5f4e8c',
   },
 };
 

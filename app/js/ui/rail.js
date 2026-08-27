@@ -19,7 +19,7 @@ export function createRail(root, { onChange }) {
 
   const buttons = new Map();
 
-  for (const ind of INDICATORS) {
+  INDICATORS.forEach((ind, i) => {
     const li = document.createElement('li');
 
     const btn = document.createElement('button');
@@ -29,9 +29,11 @@ export function createRail(root, { onChange }) {
     btn.setAttribute('aria-checked', 'false');
     btn.dataset.id = ind.id;
 
+    // Tablo numarası: basılı bir atlasta her göstergenin bir sırası olur
     const dot = document.createElement('span');
-    dot.className = 'indicator-dot';
+    dot.className = 'indicator-dot num';
     dot.setAttribute('aria-hidden', 'true');
+    dot.textContent = String(i + 1).padStart(2, '0');
 
     const body = document.createElement('span');
     body.className = 'indicator-body';
@@ -50,7 +52,7 @@ export function createRail(root, { onChange }) {
     li.appendChild(btn);
     list.appendChild(li);
     buttons.set(ind.id, btn);
-  }
+  });
 
   // Ok tuşlarıyla dolaşım — radyo grubunun beklenen davranışı
   list.addEventListener('keydown', (e) => {
@@ -110,11 +112,11 @@ export function applyTint(indicator) {
 
   ramp.stops.forEach((hex, i) => root.setProperty(`--data-${i + 1}`, hex));
   root.setProperty('--data-key', ramp.key);
-  root.setProperty('--data-key-soft', hexAlpha(ramp.key, 0.16));
+  root.setProperty('--data-key-soft', hexAlpha(ramp.key, 0.12));
   root.setProperty('--data-key-line', hexAlpha(ramp.key, 0.42));
 
-  // Tarayıcı sekmesi ve mobil adres çubuğu da uyum sağlasın
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#070d18');
+  // Tarayıcı sekmesi ve mobil adres çubuğu da kağıda uyum sağlasın
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#eff1ec');
 }
 
 function hexAlpha(hex, alpha) {

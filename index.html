@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#070d18">
+<meta name="theme-color" content="#eff1ec">
 <title>GeoEconoViz — Dünya kalkınma göstergeleri küresi</title>
 <meta name="description" content="Dünya Bankası kalkınma göstergelerini 3B küre üzerinde yıl yıl gösteren etkileşimli atlas.">
 
@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="./app/css/panels.css">
 <link rel="stylesheet" href="./app/css/responsive.css">
 
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%231fa88e' stroke-width='2.5'/><ellipse cx='16' cy='16' rx='5.5' ry='13' fill='none' stroke='%231fa88e' stroke-width='2'/><path d='M3.6 11.5h24.8M3.6 20.5h24.8' stroke='%231fa88e' stroke-width='2'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%232f5d50' stroke-width='2.5'/><ellipse cx='16' cy='16' rx='5.5' ry='13' fill='none' stroke='%232f5d50' stroke-width='2'/><path d='M3.6 11.5h24.8M3.6 20.5h24.8' stroke='%232f5d50' stroke-width='2'/></svg>">
 
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.122/Build/Cesium/Cesium.js" defer></script>
 </head>
@@ -64,10 +64,6 @@
   </div>
 </div>
 
-<!-- Küre -->
-<div id="globe"></div>
-<div class="vignette" aria-hidden="true"></div>
-
 <div class="shell">
 
   <!-- ── Üst çubuk ── -->
@@ -111,6 +107,9 @@
     </div>
   </header>
 
+  <!-- ── Küre plakası ── -->
+  <div id="globe" data-enter="globe" role="application" aria-label="Etkileşimli dünya küresi"></div>
+
   <!-- ── Sol ray: gösterge seçici ── -->
   <aside class="rail pane" id="rail" data-enter="rail" aria-label="Gösterge seçimi">
     <div class="rail-head">
@@ -125,7 +124,9 @@
         <p class="eyebrow">Ölçek</p>
         <span class="legend-unit num"></span>
       </div>
-      <div class="legend-ramp" role="img" aria-label="Renk ölçeği: soldan sağa artan değer"></div>
+      <div class="legend-ramp" role="img" aria-label="Renk ölçeği: soldan sağa artan değer">
+        <i></i><i></i><i></i><i></i><i></i>
+      </div>
       <div class="legend-scale num"></div>
       <p class="legend-nodata"><i aria-hidden="true"></i> Veri yok</p>
     </div>

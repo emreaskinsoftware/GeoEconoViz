@@ -1,83 +1,74 @@
 /* ==========================================================================
    GeoEconoViz — tasarım belirteçleri
-   Yön: gece nöbetindeki bir istatistik enstitüsünün alet paneli.
-   Gövde sabit ve sessiz kalır; ekrandaki tek doygun renk verinin kendisidir.
+   Yön: basılı istatistik atlası. Soğuk harita kağıdı, matbaa mürekkebi,
+   ince çizgiler. Küre sayfanın ortasında koyu bir baskı plakası gibi oturur.
+
+   Cam, bulanıklık ve neon geçiş yok: metin her zaman düz ve sabit bir zemin
+   üzerinde durur, arkasında dönen bir küre olmaz.
    ========================================================================== */
 
 :root {
-  /* ---- Gövde: gece yarısı mavi-arduvaz. Nötr siyah değil, hafif mavi. ---- */
-  --ink-900: #070d18;   /* sayfa zemini */
-  --ink-850: #0b1322;
-  --ink-800: #101a2c;   /* panel yüzeyi */
-  --ink-750: #152138;
-  --ink-700: #1b2a44;   /* yükseltilmiş yüzey */
-  --ink-650: #21334f;
-  --ink-600: #2a3d5d;   /* kenarlık */
-  --ink-500: #3b527a;
-  /* İkincil metinler 11–12 punto mono olarak kullanılıyor; bu ölçekte önceki
-     ton (#5b7099) cam panel üzerinde 3,63:1 veriyordu — WCAG AA eşiği 4,5.
-     Aşağıdaki değerler 5,5 ve 7,5 veriyor, hiyerarşi de korunuyor. */
-  --ink-400: #7a90b5;   /* sönük metin, eksen */
-  --ink-300: #97a9c8;
-  --ink-200: #adbfd9;   /* ikincil metin */
-  --ink-100: #d2ddef;
-  --ink-050: #edf3fc;   /* birincil metin */
+  /* ---- Kağıt ---- */
+  --paper:     #eff1ec;   /* sayfa zemini — soğuk, hafif yeşile çalan */
+  --paper-2:   #e7eae2;   /* girintili alan, kanal */
+  --card:      #ffffff;   /* panel */
+  --card-2:    #f7f8f4;   /* panel içi ikinci kat */
+  --rule:      #c8cec2;   /* 1px çizgi */
+  --rule-soft: #dde1d8;
 
-  /* ---- Pirinç: kadran vurgusu. Yalnızca seçim ve odak için, veri için asla. ---- */
-  --brass-300: #f6e29a;
-  --brass-400: #efd268;
-  --brass-500: #e0bb3b;
-  --brass-600: #b3922b;
-  --brass-a20: rgba(224, 187, 59, .2);
-  --brass-a40: rgba(224, 187, 59, .4);
+  /* ---- Mürekkep ----
+     Üç kademe yeterli ve üçü de hem kart hem kağıt üzerinde AA geçiyor.
+     (16,4 / 9,8 / 6,6 beyaz üzerinde) */
+  --ink-1: #1b2119;   /* birincil metin */
+  --ink-2: #3d463c;   /* başlıklar, güçlü ikincil */
+  --ink-3: #566055;   /* sönük metin, etiket, eksen */
 
-  /* ---- Veri rengi. Aktif göstergeye göre çalışma anında değişir. ---- */
-  --data-1: #08313a;
-  --data-2: #0e6b72;
-  --data-3: #1fa88e;
-  --data-4: #6fd68a;
-  --data-5: #d9f27e;
-  --data-key: #1fa88e;          /* rampanın okunaklı orta tonu */
-  --data-key-soft: rgba(31, 168, 142, .16);
-  --data-key-line: rgba(31, 168, 142, .42);
+  /* ---- Plaka: kürenin oturduğu koyu baskı penceresi ---- */
+  --plate:      #101410;
+  --plate-edge: #39413a;
+  --on-plate:   #eff1ec;   /* plaka üzerindeki metin */
+  --on-plate-2: #9aa396;
 
-  --no-data: #202d44;           /* veri yok dolgusu */
+  /* ---- Veri rengi. Aktif göstergeye göre çalışma anında değişir. ----
+     Matbaa mantığı: açık = düşük, koyu = yüksek. */
+  --data-1: #e8ede4;
+  --data-2: #b0c6b2;
+  --data-3: #7fa98f;
+  --data-4: #2f5d50;
+  --data-5: #14332c;
+  --data-key: #2f5d50;               /* rampanın okunaklı koyu tonu */
+  --data-key-soft: rgba(47, 93, 80, .12);
+  --data-key-line: rgba(47, 93, 80, .45);
 
-  /* ---- Cam paneller ----
-     Opaklık yüksek tutuluyor: panellerin arkasından dönen küre parlak ülkelere
-     geldiğinde zemin açılıyor ve üstündeki metnin kontrastı okunamayacak kadar
-     düşüyordu. Bulanıklık cam etkisini zaten taşıyor. */
-  --glass: rgba(16, 26, 44, .88);
-  --glass-strong: rgba(11, 19, 34, .95);
-  --glass-line: rgba(122, 152, 196, .16);
-  --glass-blur: blur(20px) saturate(1.3);
+  --no-data: #b9beb3;                /* veri yok dolgusu */
 
   /* ---- Tipografi: sözcükler ile ölçümler ayrı seslerle konuşur. ---- */
   --face-word: 'Archivo', 'Segoe UI', system-ui, sans-serif;
   --face-num: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
 
-  --step--2: .75rem;    /* 12px — mono rakamlar 11px'te okunmuyordu */
+  --step--2: .75rem;
   --step--1: .8125rem;
   --step-0:  .875rem;
   --step-1:  1rem;
   --step-2:  1.25rem;
   --step-3:  1.625rem;
   --step-4:  2.25rem;
-  --step-5:  clamp(2.5rem, 1.6rem + 3.4vw, 3.75rem);
 
-  --track-num: .08em;   /* mono etiketler açılır */
+  /* Etiketler artık büyük harf + geniş aralık değil: o birleşim bu boyutta
+     okumayı zorlaştırıyordu. Küçük harf, hafif aralık, koyu mürekkep. */
+  --track-label: .01em;
   --track-word: -.015em;
 
   /* ---- Boşluk: 4px tabanlı ---- */
   --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
   --s5: 20px; --s6: 24px; --s7: 32px; --s8: 40px; --s9: 56px;
 
-  --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-xl: 22px; --r-pill: 999px;
+  --r-sm: 4px; --r-md: 7px; --r-lg: 10px; --r-xl: 14px; --r-pill: 999px;
 
-  /* ---- Yükselti ---- */
-  --lift-1: 0 1px 2px rgba(0,0,0,.4);
-  --lift-2: 0 6px 18px -6px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4);
-  --lift-3: 0 24px 60px -18px rgba(0,0,0,.7), 0 2px 6px rgba(0,0,0,.45);
+  /* ---- Yükselti: kağıt üzerinde kağıt. Gölgeler çok hafif. ---- */
+  --lift-1: 0 1px 1px rgba(27, 33, 25, .05);
+  --lift-2: 0 1px 2px rgba(27, 33, 25, .06), 0 4px 12px -6px rgba(27, 33, 25, .12);
+  --lift-3: 0 2px 4px rgba(27, 33, 25, .07), 0 18px 42px -14px rgba(27, 33, 25, .26);
 
   /* ---- Hareket ----
      Yaylar Motion'ın linear() üretecinden. Belirtilen süre algısal süredir;
@@ -91,7 +82,7 @@
   --t-slow: 420ms;
   --t-tint: 620ms;      /* gösterge değişiminde renk geçişi */
 
-  --rail-w: 268px;
+  --rail-w: 274px;
   --rank-w: 300px;
   --topbar-h: 56px;
 }
