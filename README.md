@@ -7,6 +7,8 @@ oynatırsanız renkler ve sıralama otuz beş yıl boyunca birlikte kayar.
 **Sunucu yok, veritabanı yok, API anahtarı yok, ücret yok.** Statik bir klasör;
 veriyi tarayıcı doğrudan Dünya Bankası'ndan okuyup yerel olarak önbelleğe alıyor.
 
+**Canlı: [geoeconoviz.emreaskin.com.tr](https://geoeconoviz.emreaskin.com.tr)**
+
 ---
 
 ## Çalıştırma
@@ -29,6 +31,12 @@ barındırıcıya koymak yeterli. Derleme adımı ve ortam değişkeni yoktur.
 **GitHub Pages:** depo ayarlarında *Pages → Source: Deploy from a branch →
 `main` / `(root)`*. Başka bir şey gerekmiyor; `server.js` yalnızca yerel
 geliştirme içindir, yayında kullanılmaz.
+
+Özel alan adı depodaki `CNAME` dosyasından okunuyor; DNS tarafında tek bir
+`CNAME` kaydı yetiyor (`geoeconoviz` → `emreaskinsoftware.github.io`).
+Cloudflare kullanıyorsanız kayıt **DNS only** olmalı: proxy açıkken GitHub
+alan adını doğrulayamıyor ve TLS sertifikası hiç çıkmıyor. Sonradan proxy'yi
+açacaksanız SSL/TLS modu `Full` olmalı, `Flexible` yönlendirme döngüsü yapar.
 
 Alt yolda (`kullanici.github.io/GeoEconoViz/`) çalışması için tasarlandı:
 bütün varlıklar `./` ile göreli, yönlendirme `#` üzerinden. Bu ikincisi
