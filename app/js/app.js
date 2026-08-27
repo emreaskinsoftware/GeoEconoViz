@@ -36,6 +36,8 @@ let rail = null;
 let timeline = null;
 let ranking = null;
 let dossier = null;
+let panelTabs = null;
+let drawers = null;
 
 const boot = document.getElementById('boot');
 const bootStatus = document.getElementById('boot-status');
@@ -186,6 +188,12 @@ function selectCountry(iso3, { fly = true } = {}) {
     year: state.year,
     seriesFor: (indId) => seriesFor(iso3, indId),
   });
+
+  panelTabs.enable(country.name);
+  panelTabs.show('dossier');
+  // Dar ekranda sağ sütun bir çekmece; veriyi göstermek için açılması gerekiyor
+  if (drawers.isDrawer) drawers.openRank();
+
   writeHash();
 }
 
@@ -205,6 +213,8 @@ function clearCountry() {
   globe?.select(null);
   ranking.select(null, { scroll: false });
   dossier.close();
+  panelTabs.show('rank');
+  panelTabs.disable();
   writeHash();
 }
 
@@ -291,22 +301,68 @@ function wireDrawers() {
     scrim.dataset.open = 'false';
   };
 
-  for (const [btn, panel] of panels) {
+  const open = (which) => {
+    closeAll();
+    const [btn, panel] = panels[which];
+    panel.dataset.open = 'true';
+    btn.setAttribute('aria-expanded', 'true');
+    scrim.dataset.open = 'true';
+  };
+
+  panels.forEach(([btn, panel], i) => {
     btn.addEventListener('click', () => {
       const willOpen = panel.dataset.open !== 'true';
       closeAll();
-      if (willOpen) {
-        panel.dataset.open = 'true';
-        btn.setAttribute('aria-expanded', 'true');
-        scrim.dataset.open = 'true';
-      }
+      if (willOpen) open(i);
     });
-  }
+  });
 
   scrim.addEventListener('click', closeAll);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
-  // Ülke seçilince çekmece kapansın ki dosya görünür olsun
-  return closeAll;
+
+  const drawerMode = window.matchMedia('(max-width: 1024px)');
+  return {
+    closeAll,
+    openRank: () => open(1),
+    get isDrawer() { return drawerMode.matches; },
+  };
+}
+
+/**
+ * Sağ sütunun iki sekmesi: sıralama ve ülke dosyası.
+ *
+ * Dosya eskiden kürenin üstünde yüzen bir tabakaydı ve plakanın büyük bölümünü
+ * kapatıyordu; bir ülke seçildiğinde tam da bakılması gereken yer panelin
+ * altında kalıyordu. Artık ikisi aynı sütunu paylaşıyor, küre hiç örtülmüyor.
+ */
+function createPanelTabs() {
+  const panel = document.getElementById('rank');
+  const tabs = {
+    rank: document.getElementById('tab-rank'),
+    dossier: document.getElementById('tab-dossier'),
+  };
+
+  function show(view) {
+    panel.dataset.view = view;
+    for (const [name, btn] of Object.entries(tabs)) {
+      btn.setAttribute('aria-selected', String(name === view));
+    }
+  }
+
+  tabs.rank.addEventListener('click', () => show('rank'));
+  tabs.dossier.addEventListener('click', () => { if (!tabs.dossier.disabled) show('dossier'); });
+
+  return {
+    show,
+    enable(label) {
+      tabs.dossier.disabled = false;
+      tabs.dossier.textContent = label;
+    },
+    disable() {
+      tabs.dossier.disabled = true;
+      tabs.dossier.textContent = 'Ülke';
+    },
+  };
 }
 
 /* ==========================================================================
@@ -356,7 +412,8 @@ async function main() {
   );
 
   /* --- 3. Arayüzü kur --- */
-  const closeDrawers = wireDrawers();
+  drawers = wireDrawers();
+  panelTabs = createPanelTabs();
 
   rail = createRail(document.getElementById('rail'), {
     onChange: (id) => selectIndicator(id),
@@ -365,15 +422,21 @@ async function main() {
     onYear: (year) => selectYear(year),
   });
   ranking = createRanking(document.getElementById('rank'), {
-    onSelect: (iso3) => { closeDrawers(); selectCountry(iso3); },
+    onSelect: (iso3) => selectCountry(iso3),
   });
   dossier = createDossier(document.getElementById('dossier'), {
     onIndicatorPick: (id) => selectIndicator(id),
-    onClose: () => { state.iso3 = null; globe?.select(null); ranking.select(null, { scroll: false }); },
+    onClose: () => {
+      state.iso3 = null;
+      globe?.select(null);
+      ranking.select(null, { scroll: false });
+      panelTabs.show('rank');
+      panelTabs.disable();
+    },
   });
   createSearch(document.querySelector('.search'), {
     countries: state.countries,
-    onPick: (iso3) => { closeDrawers(); selectCountry(iso3); },
+    onPick: (iso3) => selectCountry(iso3),
   });
   ranking.showSkeleton();
 

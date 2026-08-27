@@ -157,55 +157,65 @@
     </div>
   </div>
 
-  <!-- ── Sağ panel: sıralama ── -->
-  <aside class="rank pane" id="rank" data-enter="rank" aria-label="Ülke sıralaması">
-    <div class="rank-head">
-      <p class="eyebrow">Sıralama</p>
-      <h2 class="rank-subtitle">Yükleniyor…</h2>
-      <div class="rank-order" role="group" aria-label="Sıralama yönü">
-        <button type="button" data-order="desc" aria-pressed="true">En yüksek</button>
-        <button type="button" data-order="asc" aria-pressed="false">En düşük</button>
-      </div>
+  <!-- ── Sağ panel: sıralama ve ülke dosyası (iki sekme) ──
+       Dosya küreyi kapatmasın diye buraya taşındı: eskiden plakanın üstünde
+       yüzen bir tabaka olduğu için seçilen ülke tam da panelin altında kalıyordu. -->
+  <aside class="rank pane" id="rank" data-enter="rank" data-view="rank"
+         aria-label="Sıralama ve ülke dosyası">
+
+    <div class="panel-tabs" role="tablist" aria-label="Sağ panel görünümü">
+      <button type="button" class="panel-tab" id="tab-rank" role="tab"
+              aria-selected="true" aria-controls="panel-rank">Sıralama</button>
+      <button type="button" class="panel-tab" id="tab-dossier" role="tab"
+              aria-selected="false" aria-controls="dossier" disabled>Ülke</button>
     </div>
-    <ul class="rank-list scroll-slim"></ul>
+
+    <div class="panel-view" id="panel-rank" role="tabpanel" aria-labelledby="tab-rank">
+      <div class="rank-head">
+        <h2 class="rank-subtitle">Yükleniyor…</h2>
+        <div class="rank-order" role="group" aria-label="Sıralama yönü">
+          <button type="button" data-order="desc" aria-pressed="true">En yüksek</button>
+          <button type="button" data-order="asc" aria-pressed="false">En düşük</button>
+        </div>
+      </div>
+      <ul class="rank-list scroll-slim"></ul>
+    </div>
+
+    <section class="dossier" id="dossier" data-open="false" aria-hidden="true"
+             role="tabpanel" aria-labelledby="tab-dossier">
+      <header class="dossier-head">
+        <img class="dossier-flag" alt="" width="44" height="30">
+        <div class="dossier-id">
+          <h2 class="dossier-name" id="dossier-name"></h2>
+          <div class="dossier-meta"></div>
+        </div>
+        <button type="button" class="dossier-close" aria-label="Sıralamaya dön">
+          <svg width="16" height="16" aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+      </header>
+
+      <div class="dossier-body scroll-slim">
+        <p class="eyebrow">Seçili yılın göstergeleri</p>
+        <div class="stat-grid"></div>
+
+        <section class="series">
+          <div class="series-head">
+            <h3 class="series-title"></h3>
+          </div>
+          <div class="series-chart"></div>
+        </section>
+
+        <section class="summary">
+          <p class="eyebrow">Ülke hakkında</p>
+          <p class="summary-text"></p>
+        </section>
+      </div>
+    </section>
   </aside>
 
 </div>
 
 <div class="scrim" id="scrim" data-open="false"></div>
-
-<!-- ── Ülke dosyası ── -->
-<section class="dossier" id="dossier" data-open="false" aria-hidden="true"
-         role="dialog" aria-modal="false" aria-labelledby="dossier-name">
-  <header class="dossier-head">
-    <img class="dossier-flag" alt="" width="46" height="32">
-    <div class="dossier-id">
-      <h2 class="dossier-name" id="dossier-name"></h2>
-      <div class="dossier-meta"></div>
-    </div>
-    <button type="button" class="dossier-close" aria-label="Ülke dosyasını kapat">
-      <svg width="16" height="16" aria-hidden="true"><use href="#i-x"/></svg>
-    </button>
-  </header>
-
-  <div class="dossier-body scroll-slim">
-    <p class="eyebrow">Seçili yılın göstergeleri</p>
-    <div class="stat-grid"></div>
-
-    <section class="series">
-      <div class="series-head">
-        <h3 class="series-title"></h3>
-        <p class="eyebrow">Zaman serisi</p>
-      </div>
-      <div class="series-chart"></div>
-    </section>
-
-    <section class="summary">
-      <p class="eyebrow">Ülke hakkında</p>
-      <p class="summary-text"></p>
-    </section>
-  </div>
-</section>
 
 <!-- Küre ipucu. Bootstrap'in .tooltip sınıfıyla çakışmasın diye kendi adı var. -->
 <div class="geo-tip" id="geo-tip" data-open="false" aria-hidden="true">

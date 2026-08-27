@@ -36,7 +36,7 @@ barındırıcıya koymak yeterli. Derleme adımı ve ortam değişkeni yoktur.
 | **Küre** | CesiumJS; gerçek arazi ve batimetri dokusu üzerine ülkeler seçili göstergeye göre boyanıyor (choropleth). Üst çubuktaki düğmeyle düz veri görünümüne geçilebiliyor |
 | **Yıl şeridi** | 1990'dan bugüne sürgü; oynat düğmesiyle otomatik ilerleme |
 | **Sıralama** | Yıl değiştikçe satırlar yeni yerlerine kayarak gidiyor |
-| **Ülke dosyası** | Dokuz göstergenin o yılki değeri, her birinin eğrisi, tam zaman serisi ve Vikipedi özeti |
+| **Ülke dosyası** | Dokuz göstergenin o yılki değeri, her birinin eğrisi, tam zaman serisi ve Vikipedi özeti. Sıralamayla aynı sütunda, sekmeli — küreyi hiçbir zaman kapatmaz |
 | **Bağlantı** | `#/gösterge/yıl/ülke` — açtığınız görünüm paylaşılabilir |
 
 Arazi dokusu Cesium'un kendi paketiyle gelen **Natural Earth II** kabartma ve
